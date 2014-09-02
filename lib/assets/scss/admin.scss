@@ -1,0 +1,57 @@
+
+#vespucci {
+
+	fieldset {
+		margin: 10px 10px 20px;
+	}
+
+	#vespucci-map-fields {
+		overflow: hidden;
+		> div {
+			display: inline-block;
+			float: left;
+			margin-right: 5%;
+		}
+		.default-address {
+			label {
+				display: none;
+			}
+		}
+	}
+
+	#vespucci-geocode {
+		a {
+			text-decoration: none;
+		}
+	}
+
+	#vespucci-map {
+		width: 100%; max-width: 900px; height: 300px;
+		margin: 20px 0;
+	}
+
+	.vespucci-placeholder {
+		background: #E4E4E4;
+		border: 1px solid rgba(0,0,0,.1);
+	}
+
+	@media screen and (max-width: 782px) {
+
+		.vespucci-map-fields {
+			overflow: visible;
+			> div {
+				float: none; display: block; margin-right: 0;
+			}
+		}
+
+	}
+
+	@media screen and (min-width: 783px) {
+
+		.marker-uploader {
+			display: inline-block;
+		}
+
+	}
+
+}
