@@ -19,74 +19,44 @@
 class Vespucci_Admin {
 
 	/**
-	 * Instance of this class.
+	 * The ID of this plugin.
 	 *
 	 * @since    1.0.0
-	 *
-	 * @var      object
+	 * @access   private
+	 * @var      string    $name    The ID of this plugin.
 	 */
-	protected static $instance = null;
+	private $name;
 
 	/**
-	 * Slug of the plugin screen.
+	 * The version of this plugin.
 	 *
 	 * @since    1.0.0
-	 *
-	 * @var      string
+	 * @access   private
+	 * @var      string    $version    The current version of this plugin.
 	 */
-	protected $plugin_screen_hook_suffix = null;
+	private $version;
 
 	/**
-	 * Initialize the plugin by loading admin scripts & styles and adding a
-	 * settings page and menu.
 	 *
-	 * @since     1.0.0
-	 *
-	 * @access private
+	 * @since   1.0.0
+	 * @access  private
+	 * @var     string  $plugin_screen_hook_suffix
 	 */
-	private function __construct() {
-
-		// Call $plugin_slug from public plugin class.
-		$plugin = Vespucci_Plugin::get_instance();
-		$this->plugin_slug = $plugin->get_plugin_slug();
-
-		// Load admin style sheet and JavaScript.
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_styles' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
-
-		// Add the options page and menu item.
-		add_action( 'admin_menu', array( $this, 'admin_menu_pages' ) );
-		add_action( 'admin_init', array( $this, 'add_settings' ) );
-
-		// Add meta boxes.
-		add_action( 'add_meta_boxes', array( $this, 'add_meta_box' ) );
-		add_action( 'save_post', array( $this, 'save_meta_box' ) );
-
-		// Add action links pointing to the options pages.
-		$plugin_basename = plugin_basename( plugin_dir_path( realpath( dirname( __FILE__ ) ) ) . $this->plugin_slug . '.php' );
-		add_filter( 'plugin_action_links_' . $plugin_basename, array( $this, 'add_action_links' ) );
-
-		self::load_components();
-
-	}
+	private $plugin_screen_hook_suffix;
 
 	/**
-	 * Return an instance of this class.
+	 * Initialize the class and set its properties.
 	 *
-	 * @since     1.0.0
-	 *
-	 * @access    public
-	 *
-	 * @return    object    A single instance of this class.
+	 * @since    1.0.0
+	 * @var      string    $name       The name of this plugin.
+	 * @var      string    $version    The version of this plugin.
 	 */
-	public static function get_instance() {
+	public function __construct( $name, $version ) {
 
-		// If the single instance hasn't been set, set it now.
-		if ( null == self::$instance ) {
-			self::$instance = new self;
-		}
+		$this->name = $name;
+		$this->version = $version;
+		$this->load_dependencies();
 
-		return self::$instance;
 	}
 
 	/**
@@ -96,15 +66,18 @@ class Vespucci_Admin {
 	 *
 	 * @return    null    Return early if no settings page is registered.
 	 */
-	public function enqueue_admin_styles() {
+	public function enqueue_styles() {
 
-		if ( ! isset( $this->plugin_screen_hook_suffix ) ) {
+		if ( ! isset( $this->plugin_screen_hook_suffix ) )
 			return;
-		}
 
 		$screen = get_current_screen();
-		if ( $this->plugin_screen_hook_suffix == $screen->id ) {
-			wp_enqueue_style( $this->plugin_slug .'-admin-styles', plugins_url( 'assets/css/admin.css', __FILE__ ), array(), Vespucci_Plugin::VERSION );
+		if ( $this->plugin_screen_hook_suffix == $screen->id
+		     OR $this->plugin_screen_hook_suffix == 'toplevel_page_' . $this->name . '-settings' ) {
+
+				wp_enqueue_style( $this->name . '-admin-styles', plugins_url( 'assets/css/admin.css', __FILE__ ), array(), $this->version );
+				wp_enqueue_style( $this->name . '-tiptip', plugins_url( 'assets/css/vendor/tiptip.css', __FILE__ ), array(), $this->version );
+
 		}
 
 	}
@@ -116,25 +89,25 @@ class Vespucci_Admin {
 	 *
 	 * @return    null    Return early if no settings page is registered.
 	 */
-	public function enqueue_admin_scripts() {
+	public function enqueue_scripts() {
 
-		if ( ! isset( $this->plugin_screen_hook_suffix ) ) {
+		if ( ! isset( $this->plugin_screen_hook_suffix ) )
 			return;
-		}
 
-		$options = get_option( $this->plugin_slug . '_settings' );
+		$options = get_option( $this->name . '_settings' );
 		$api_key = isset( $options['map_provider_api_key']['google'] ) ? '&key=' . $options['map_provider_api_key']['google'] : '';
 
 		$screen = get_current_screen();
-		if ( $this->plugin_screen_hook_suffix == $screen->id ) {
-			wp_enqueue_script( 'google-maps-api', '//maps.googleapis.com/maps/api/js?sensor=true' . $api_key );
-			wp_enqueue_script( 'gmaps', plugins_url( 'assets/js/vendor/min/gmaps.min.js', __FILE__ ), array( 'jquery', 'google-maps-api' ) );
-			wp_enqueue_script( $this->plugin_slug . '-admin-map', plugins_url( 'assets/js/admin-map.js', __FILE__ ), array( 'gmaps' ), Vespucci_Plugin::VERSION, true );
-		}
+		if ( $this->plugin_screen_hook_suffix == $screen->id
+			OR $this->plugin_screen_hook_suffix == 'toplevel_page_' . $this->name . '-settings' ) {
 
-		if ( $this->plugin_screen_hook_suffix == $screen->id || $this->plugin_slug . '-locations' ) {
-			wp_enqueue_media();
-			wp_enqueue_script( $this->plugin_slug . '-admin-settings', plugins_url( 'assets/js/admin-settings.js', __FILE__ ), array( 'jquery' ), Vespucci_Plugin::VERSION, true );
+				wp_enqueue_media();
+				wp_enqueue_script( $this->name . '-tiptip', plugins_url( 'assets/js/vendor/min/jquery.tipTip.min.js', __FILE__ ), array( 'jquery' ), $this->version, true );
+				wp_enqueue_script( 'google-maps-api', '//maps.googleapis.com/maps/api/js?sensor=true' . $api_key );
+				wp_enqueue_script( 'gmaps', plugins_url( 'assets/js/vendor/min/gmaps.min.js', __FILE__ ), array( 'jquery', 'google-maps-api' ) );
+				wp_enqueue_script( $this->name . '-admin-map', plugins_url( 'assets/js/admin-map.js', __FILE__ ), array( 'gmaps', 'jquery-ui-tabs' ), $this->version, true );
+				wp_enqueue_script( $this->name . '-admin-settings', plugins_url( 'assets/js/admin-settings.js', __FILE__ ), array( 'jquery', $this->name . '-tiptip' ), $this->version, true );
+
 		}
 
 	}
@@ -144,10 +117,8 @@ class Vespucci_Admin {
 	 *
 	 * @since  1.0.0
 	 */
-	private static function load_components() {
-
-		require_once 'class-vespucci-admin-fields.php';
-
+	private function load_dependencies() {
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'lib/class-vespucci-admin-fields.php';
 	}
 
 	/**
@@ -159,10 +130,10 @@ class Vespucci_Admin {
 
 		// settings main page on WordPress menu
 		$this->plugin_screen_hook_suffix = add_menu_page(
-			__( 'Vespucci', $this->plugin_slug ),
-			__( 'Vespucci', $this->plugin_slug ),
+			__( 'Vespucci', $this->name ),
+			__( 'Vespucci', $this->name ),
 			'manage_options',
-			$this->plugin_slug . '-settings',
+			$this->name . '-settings',
 			array( $this, 'settings_page' ),
 			'dashicons-location',
 			70
@@ -170,34 +141,33 @@ class Vespucci_Admin {
 
 		// general options page
 		add_submenu_page(
-			$this->plugin_slug . '-settings',
-			__( 'Settings', $this->plugin_slug ),
-			__( 'Settings', $this->plugin_slug ),
+			$this->name . '-settings',
+			__( 'Settings', $this->name ),
+			__( 'Settings', $this->name ),
 			'manage_options',
-			$this->plugin_slug . '-settings',
+			$this->name . '-settings',
 			array( $this, 'settings_page' )
 		);
 
 		// options concerning locations entries in db
 		add_submenu_page(
-			$this->plugin_slug . '-settings',
-			__( 'Locations', $this->plugin_slug ),
-			__( 'Locations', $this->plugin_slug ),
+			$this->name . '-settings',
+			__( 'Locations', $this->name ),
+			__( 'Locations', $this->name ),
 			'manage_options',
-			$this->plugin_slug . '-locations',
+			$this->name . '-locations',
 			array( $this, 'settings_page' )
 		);
 
 		// tools page does not update options, but allows to perform actions over db
 		add_submenu_page(
-			$this->plugin_slug . '-settings',
-			__( 'Tools', $this->plugin_slug ),
-			__( 'Tools', $this->plugin_slug ),
+			$this->name . '-settings',
+			__( 'Tools', $this->name ),
+			__( 'Tools', $this->name ),
 			'manage_options',
-			$this->plugin_slug . '-tools',
+			$this->name . '-tools',
 			array( $this, 'settings_page' )
 		);
-
 
 	}
 
@@ -214,9 +184,9 @@ class Vespucci_Admin {
 	public function add_action_links( $links ) {
 
 		return array_merge( array(
-			'settings'  => '<a href="' . admin_url( 'admin.php?page=' . $this->plugin_slug . '-settings' ) . '">'   . __( 'Settings', $this->plugin_slug )  . '</a>',
-			'locations' => '<a href="' . admin_url( 'admin.php?page=' . $this->plugin_slug . '-locations' ) . '">'  . __( 'Locations', $this->plugin_slug ) . '</a>',
-			'tools'     => '<a href="' . admin_url( 'admin.php?page=' . $this->plugin_slug . '-tools' ) . '">'      . __( 'Tools', $this->plugin_slug )     . '</a>',
+			'settings'  => '<a href="' . admin_url( 'admin.php?page=' . $this->name . '-settings' ) . '">'   . __( 'Settings', $this->name )  . '</a>',
+			'locations' => '<a href="' . admin_url( 'admin.php?page=' . $this->name . '-locations' ) . '">'  . __( 'Locations', $this->name ) . '</a>',
+			'tools'     => '<a href="' . admin_url( 'admin.php?page=' . $this->name . '-tools' ) . '">'      . __( 'Tools', $this->name )     . '</a>',
 		), $links );
 
 	}
@@ -227,9 +197,7 @@ class Vespucci_Admin {
 	 * @since    1.0.0
 	 */
 	public function settings_page() {
-
 		include_once 'views/settings-page.php';
-
 	}
 
 	/**
@@ -241,172 +209,196 @@ class Vespucci_Admin {
 	public function add_settings() {
 
 		// plugin and maps default settings
-		register_setting( $this->plugin_slug . '_settings', $this->plugin_slug . '_settings', array( $this, 'sanitize_fields' ) );
+		register_setting( $this->name . '_settings', $this->name . '_settings', array( $this, 'sanitize_fields' ) );
 		// wp objects where to collect locations
-		register_setting( $this->plugin_slug . '_locations', $this->plugin_slug . '_locations', array( $this, 'sanitize_fields' ) );
+		register_setting( $this->name . '_locations', $this->name . '_locations', array( $this, 'sanitize_fields' ) );
 
-		// default map provider and api key 
-		add_settings_section(
-			$this->plugin_slug . '-provider',
-			__( 'Map Provider', $this->plugin_slug ),
-			array( $this, 'settings_provider' ),
-			$this->plugin_slug . '_settings'
-		);
-
-		// map defaults
-		add_settings_section(
-			$this->plugin_slug . '-defaults',
-			__( 'Map Defaults', $this->plugin_slug ),
-			array( $this, 'settings_defaults' ),
-			$this->plugin_slug . '_settings'
-		);
-
-		// default markers
-		add_settings_section(
-			$this->plugin_slug . '-markers',
-			__( 'Map Markers', $this->plugin_slug ),
-			array( $this, 'settings_provider' ),
-			$this->plugin_slug . '_settings'
-		);
-
-		// WordPress objects where to save location data
-		add_settings_section(
-			$this->plugin_slug . '-wp-objects',
-			__( 'Locations', $this->plugin_slug ),
-			array( $this, 'settings_wp_objects' ),
-			$this->plugin_slug . '_locations'
-		);
-
-		// get any saved data to pass to fields as argument 
-		$saved_settings = get_option( $this->plugin_slug . '_settings' );
-		$saved_locations = get_option( $this->plugin_slug . '_locations' );
-
-		add_settings_field(
-			$this->plugin_slug . '_map_provider',
-			__( 'Service', $this->plugin_slug ),
-			array( 'Vespucci_Admin_Fields', 'select_field' ),
-			$this->plugin_slug . '_settings',
-			$this->plugin_slug . '-provider',
+		$settings = array(
 			array(
-				'id' => $this->plugin_slug .'map_provider',
-				'name' => $this->plugin_slug .'_settings[map_provider]',
-				'choices' => array(
-					'google' => __( 'Google Maps', $this->plugin_slug ),
-					'mapbox' => __( 'Mapbox', $this->plugin_slug )
-				),
-				'label' => __( 'Default map provider' , $this->plugin_slug ),
-				'value' => isset( $saved_settings['map_provider'] ) ? $saved_settings['map_provider'] : 'google',
-				'description' => __( 'Select mapping service to render maps.', $this->plugin_slug )
-			)
-		);
-
-		add_settings_field(
-			$this->plugin_slug . '_map_provider_api_key',
-			__( 'API Key', $this->plugin_slug ),
-			array( 'Vespucci_Admin_Fields', 'text_field' ),
-			$this->plugin_slug . '_settings',
-			$this->plugin_slug . '-provider',
+				'id'        => 'provider',
+				'title'     => __( 'Map Provider', $this->name ),
+				'callback'  => array( $this, 'settings_provider' ),
+				'page'      => 'settings'
+			),
 			array(
-				'id' => $this->plugin_slug .'_map_provider_api_key',
-				'name' => $this->plugin_slug .'_settings[map_provider_api_key]',
-				'label' => __( 'Map provider API key' , $this->plugin_slug ),
-				'value' => isset( $saved_settings['map_provider_api_key'] ) ? $saved_settings['map_provider_api_key'] : '',
-				'description' => __( 'Some mapping services may need an API key to work.' , $this->plugin_slug ),
-				'class' => 'regular-text'
-			)
-		);
-
-		add_settings_field(
-			$this->plugin_slug . '_map_defaults',
-			__( 'Map settings', $this->plugin_slug ),
-			array( 'Vespucci_Admin_Fields', 'map_field' ),
-			$this->plugin_slug . '_settings',
-			$this->plugin_slug . '-defaults',
+				'id'        => 'defaults',
+				'title'     => __( 'Map Defaults', $this->name ),
+				'callback'  => array( $this, 'settings_defaults' ),
+				'page'      => 'settings'
+			),
 			array(
-				'id' => $this->plugin_slug .'_map_defaults',
-				'name' => $this->plugin_slug .'_settings[map_defaults]',
-				'label' => __( 'Default coordinates' , $this->plugin_slug ),
-				'value' => isset( $saved_settings['map_defaults'] ) && $saved_settings['map_defaults'] ? $saved_settings['map_defaults'] : array(
-					'coordinates' => array(
-						'lat' => 43.783300,
-						'lng' => 11.250000
-					),
-					'dragging' => true,
-					'zoom' => 10,
-					'radius' => '50km',
-					'address' => array(
-						'street' => '',
-						'area' => '',
-						'city' => __( 'Florence', $this->plugin_slug ),
-						'state' => __( 'Tuscany', $this->plugin_slug ),
-						'postcode' => '',
-						'country' => __( 'Italy', $this->plugin_slug ),
+				'id'        => 'markers',
+				'title'     => __( 'Map Markers', $this->name ),
+				'callback'  => array( $this, 'settings_provider' ),
+				'page'      => 'settings'
+			),
+			array(
+				'id'        => 'wp-objects',
+				'title'     => __( 'Locations', $this->name ),
+				'callback'  => array( $this, 'settings_wp_objects' ),
+				'page'      => 'locations'
+			),
+		);
+		foreach( $settings as $setting ) :
+			add_settings_section(
+				$this->name . '-' . $setting['id'],
+				$setting['title'],
+				$setting['callback'],
+				$this->name . '_' . $setting['page']
+			);
+		endforeach;
+
+		// get any saved data to pass to fields as argument
+		$default_settings = Vespucci_Core::default_options( 'settings' );
+		$saved_settings = get_option( $this->name . '_settings' );
+		$default_locations = Vespucci_Core::default_options( 'objects' );
+		$saved_locations = get_option( $this->name . '_locations' );
+
+		$map_providers = Vespucci_Core::map_providers();
+		if ( is_array( $map_providers ) ) :
+
+			$providers = array();
+			$providers_api = array();
+			foreach( $map_providers as $map_provider => $value ) :
+
+				$providers[$map_provider] = $value['label'];
+				$providers_api[$map_provider] = $value['api_key'];
+
+			endforeach;
+
+			add_settings_field(
+				$this->name . '_map_providers',
+				__( 'Service', $this->name ),
+				array( 'Vespucci_Admin_Fields', 'select_field' ),
+				$this->name . '_settings',
+				$this->name . '-provider',
+				array(
+					'id' => $this->name .'map_provider',
+					'name' => $this->name .'_settings[map_provider]',
+					'choices' => $providers,
+					'label' => __( 'Default map provider' , $this->name ),
+					'value' => isset( $saved_settings['map_provider'] ) ? $saved_settings['map_provider'] : $default_settings['map_provider'],
+					'description' => __( 'Select mapping service to render maps.', $this->name ),
+					'allow_null' => false
+				)
+			);
+
+			foreach( $providers_api as $key => $value ) :
+
+				add_settings_field(
+					$this->name . '_map_provider_api_key_' . $key,
+					__( 'API Key', $this->name ),
+					array( 'Vespucci_Admin_Fields', 'text_field' ),
+					$this->name . '_settings',
+					$this->name . '-provider',
+					array(
+						'id' => $this->name .'_map_provider_api_key_' . $key,
+						'name' => $this->name .'_settings[map_provider_api_key]['. $key .']',
+						'label' => __( 'Map provider API key' , $this->name ),
+						'value' => isset( $saved_settings['map_provider_api_key'][$key] ) ? $saved_settings['map_provider_api_key'][$key] : $default_settings['map_provider_api_key'][$key],
+						'description' => __( 'Some mapping services may need an API key to work.' , $this->name ),
+						'class' => 'regular-text'
 					)
-				),
-				'description' => __( 'Set the default position of the map and other default map options.' , $this->plugin_slug )
+				);
+
+			endforeach;
+
+		endif;
+
+		add_settings_field(
+			$this->name . '_map_defaults',
+			__( 'Map settings', $this->name ),
+			array( 'Vespucci_Admin_Fields', 'location_box' ),
+			$this->name . '_settings',
+			$this->name . '-defaults',
+			array(
+				'id' => $this->name .'_map_defaults',
+				'name' => $this->name .'_settings[box_defaults]',
+				'label' => __( 'Default coordinates' , $this->name ),
+				'value' => isset( $saved_settings['box_defaults'] ) && $saved_settings['box_defaults'] ? $saved_settings['box_defaults'] : $default_settings['box_defaults']
 			)
 		);
 
 		add_settings_field(
-			$this->plugin_slug . '_disable_scripts',
-			__( 'Disable scripts', $this->plugin_slug ),
+			$this->name . '_disable_scripts',
+			__( 'Disable scripts', $this->name ),
 			array( 'Vespucci_Admin_Fields', 'bool_field' ),
-			$this->plugin_slug . '_settings',
-			$this->plugin_slug . '-defaults',
+			$this->name . '_settings',
+			$this->name . '-defaults',
 			array(
-				'id' => $this->plugin_slug . '_disable_scripts',
-				'name' => $this->plugin_slug . '_settings[disable_scripts]',
-				'label' =>  __( 'Load scripts manually', $this->plugin_slug ),
+				'id' => $this->name . '_disable_scripts',
+				'name' => $this->name . '_settings[disable_scripts]',
+				'label' =>  __( 'Load scripts manually', $this->name ),
 				'value' => isset( $saved_settings['disable_scripts'] ) ? $saved_settings['disable_scripts'] : false,
-				'description' => __( "If checked, frontend maps won't work unless scripts are manually replaced and enqueued." , $this->plugin_slug )
+				'description' => __( "If checked, frontend maps won't work unless scripts are manually replaced and enqueued." , $this->name )
+			)
+		);
+
+		$sizes = get_intermediate_image_sizes();
+		$choices = array();
+		foreach( $sizes as $size ) :
+			$choices[$size] = ucfirst( $size );
+		endforeach;
+
+		add_settings_field(
+			$this->name . '_marker_size',
+			__( 'Marker size', $this->name ),
+			array( 'Vespucci_Admin_Fields', 'select_field' ),
+			$this->name . '_settings',
+			$this->name . '-markers',
+			array(
+				'id' => $this->name . '_current_marker',
+				'name' => $this->name . '_settings[current_marker]',
+				'label' => __( 'Default marker size' , $this->name ),
+				'value' => isset( $saved_settings['marker_size'] ) && $saved_settings['marker_size'] ? $saved_settings['marker_size'] : '',
+				'choices' => $choices,
+				'description' => __( 'Default image size to use when using custom markers from the media library.' , $this->name ),
+				'allow_null' => true
 			)
 		);
 
 		add_settings_field(
-			$this->plugin_slug . '_current_marker',
-			__( 'Current Marker', $this->plugin_slug ),
+			$this->name . '_current_marker',
+			__( 'Current Marker', $this->name ),
 			array( 'Vespucci_Admin_Fields', 'marker_field' ),
-			$this->plugin_slug . '_settings',
-			$this->plugin_slug . '-markers',
+			$this->name . '_settings',
+			$this->name . '-markers',
 			array(
-				'id' => $this->plugin_slug . '_current_marker',
-				'name' => $this->plugin_slug . '_settings[current_marker]',
-				'label' => __( 'Marker for the current location' , $this->plugin_slug ),
+				'id' => $this->name . '_current_marker',
+				'name' => $this->name . '_settings[current_marker]',
+				'label' => __( 'Marker for the current location' , $this->name ),
 				'value' => isset( $saved_settings['current_marker'] ) && $saved_settings['current_marker'] ? $saved_settings['current_marker'] : '',
-				'description' => __( 'Marker to be used when the currently queried object is shown on map.' , $this->plugin_slug ),
-				'size' => 'marker',
+				'description' => __( 'Marker to be used when the currently queried object is shown on map.' , $this->name ),
 			)
 		);
 
 		add_settings_field(
-			$this->plugin_slug . '_cluster_marker',
-			__( 'Cluster Marker', $this->plugin_slug ),
+			$this->name . '_cluster_marker',
+			__( 'Cluster Marker', $this->name ),
 			array( 'Vespucci_Admin_Fields', 'marker_field' ),
-			$this->plugin_slug . '_settings',
-			$this->plugin_slug . '-markers',
+			$this->name . '_settings',
+			$this->name . '-markers',
 			array(
-				'id' => $this->plugin_slug . '_cluster_marker',
-				'name' => $this->plugin_slug . '_settings[cluster_marker]',
-				'label' => __( 'Marker for close locations' , $this->plugin_slug ),
+				'id' => $this->name . '_cluster_marker',
+				'name' => $this->name . '_settings[cluster_marker]',
+				'label' => __( 'Marker for close locations' , $this->name ),
 				'value' => isset( $saved_settings['cluster_marker'] ) ? $saved_settings['cluster_marker'] : '',
-				'description' => __( 'Overrides default map provider marker for clusters of locations.' , $this->plugin_slug ),
-				'size' => 'marker',
+				'description' => __( 'Overrides default map provider marker for clusters of locations.' , $this->name ),
 			)
 		);
 
 		add_settings_field(
-			$this->plugin_slug . '_group_marker',
-			__( 'Group Marker', $this->plugin_slug ),
+			$this->name . '_group_marker',
+			__( 'Group Marker', $this->name ),
 			array( 'Vespucci_Admin_Fields', 'marker_field' ),
-			$this->plugin_slug . '_settings',
-			$this->plugin_slug . '-markers',
+			$this->name . '_settings',
+			$this->name . '-markers',
 			array(
-				'id' => $this->plugin_slug . '_group_marker',
-				'name' => $this->plugin_slug . '_settings[group_marker]',
-				'label' => __( 'Marker for grouped locations' , $this->plugin_slug ),
+				'id' => $this->name . '_group_marker',
+				'name' => $this->name . '_settings[group_marker]',
+				'label' => __( 'Marker for grouped locations' , $this->name ),
 				'value' => isset( $saved_settings['group_marker'] ) ? $saved_settings['group_marker'] : '',
-				'description' => __( 'To represent locations that share the same coordinates.' , $this->plugin_slug ),
-				'size' => 'marker',
+				'description' => __( 'To represent locations that share the same coordinates.' , $this->name ),
 			)
 		);
 
@@ -418,19 +410,18 @@ class Vespucci_Admin {
 		unset( $choices['revision'], $choices['nav_menu_item'] );
 
 		add_settings_field(
-			$this->plugin_slug . '_post_types',
-			__( 'Post types', $this->plugin_slug ),
-			array( 'Vespucci_Admin_Fields', 'locations_field' ),
-			$this->plugin_slug . '_locations',
-			$this->plugin_slug . '-wp-objects',
+			$this->name . '_post_types',
+			__( 'Post types', $this->name ),
+			array( 'Vespucci_Admin_Fields', 'wp_objects_field' ),
+			$this->name . '_locations',
+			$this->name . '-wp-objects',
 			array(
-				'id' => $this->plugin_slug . '_locations_post_types',
-				'name' => $this->plugin_slug . '_locations[post_types]',
-				'class' => $this->plugin_slug . '_locations post-types-locations',
-				'label' => __( 'Tick to collect location data for the following post types:', $this->plugin_slug ),
-				'value' => isset( $saved_locations['post_types'] ) && $saved_locations['post_types'] ? json_decode( $saved_locations['post_types'] ) : array(),
+				'id' => $this->name . '_locations_post_types',
+				'name' => $this->name . '_locations[post_types]',
+				'class' => $this->name . '_locations post-types-locations',
+				'label' => __( 'Tick to collect location data for the following post types:', $this->name ),
+				'value' => isset( $saved_locations['post_types'] ) && $saved_locations['post_types'] ? json_decode( $saved_locations['post_types'] ) : $default_locations['post_types'],
 				'choices' => $choices,
-				'description' => __( 'You can also set a marker for each post type.', $this->plugin_slug )
 			)
 		);
 
@@ -442,19 +433,18 @@ class Vespucci_Admin {
 		unset( $choices['nav_menu'], $choices['post_format'], $choices['link_category'] );
 
 		add_settings_field(
-			$this->plugin_slug . '_terms',
-			__( 'Terms', $this->plugin_slug ),
-			array( 'Vespucci_Admin_Fields', 'locations_field' ),
-			$this->plugin_slug . '_locations',
-			$this->plugin_slug . '-wp-objects',
+			$this->name . '_terms',
+			__( 'Terms', $this->name ),
+			array( 'Vespucci_Admin_Fields', 'wp_objects_field' ),
+			$this->name . '_locations',
+			$this->name . '-wp-objects',
 			array(
-				'id' => $this->plugin_slug . '_locations_terms',
-				'name' => $this->plugin_slug . '_locations[terms]',
-				'class' => $this->plugin_slug . '_locations terms-locations',
-				'label' => __( 'Tick to collect location data for the following taxonomies:', $this->plugin_slug ),
-				'value' => isset( $saved_locations['terms'] ) && $saved_locations['terms'] ? json_decode( $saved_locations['terms'] ) : array(),
+				'id' => $this->name . '_locations_terms',
+				'name' => $this->name . '_locations[terms]',
+				'class' => $this->name . '_locations terms-locations',
+				'label' => __( 'Tick to collect location data for the following taxonomies:', $this->name ),
+				'value' => isset( $saved_locations['terms'] ) && $saved_locations['terms'] ? json_decode( $saved_locations['terms'] ) : $default_locations['terms'],
 				'choices' => $choices,
-				'description' => __( 'You can also set a marker for each taxonomy.', $this->plugin_slug )
 			)
 		);
 
@@ -465,19 +455,34 @@ class Vespucci_Admin {
 		endforeach;
 
 		add_settings_field(
-			$this->plugin_slug . '_users',
-			__( 'Users', $this->plugin_slug ),
-			array( 'Vespucci_Admin_Fields', 'locations_field' ),
-			$this->plugin_slug . '_locations',
-			$this->plugin_slug . '-wp-objects',
+			$this->name . '_users',
+			__( 'Users', $this->name ),
+			array( 'Vespucci_Admin_Fields', 'wp_objects_field' ),
+			$this->name . '_locations',
+			$this->name . '-wp-objects',
 			array(
-				'id' => $this->plugin_slug . '_users',
-				'name' => $this->plugin_slug . '_locations[users]',
-				'class' => $this->plugin_slug . '-locations users-locations',
-				'label' => __( 'Tick to collect location data for the following user types:', $this->plugin_slug ),
-				'value' => isset( $saved_locations['users'] ) && $saved_locations['users'] ? json_decode( $saved_locations['users'] ) : array(),
+				'id' => $this->name . '_users',
+				'name' => $this->name . '_locations[users]',
+				'class' => $this->name . '-locations users-locations',
+				'label' => __( 'Tick to collect location data for the following user types:', $this->name ),
+				'value' => isset( $saved_locations['users'] ) && $saved_locations['users'] ? json_decode( $saved_locations['users'] ) : $default_locations['users'],
 				'choices' => $choices,
-				'description' => __( 'You can also set a marker for each user type.', $this->plugin_slug )
+			)
+		);
+
+		add_settings_field(
+			$this->name . '_comments',
+			__( 'Comments', $this->name ),
+			array( 'Vespucci_Admin_Fields', 'wp_objects_field' ),
+			$this->name . '_locations',
+			$this->name . '-wp-objects',
+			array(
+				'id' => $this->name . '_comments',
+				'name' => $this->name . '_locations[comments]',
+				'class' => $this->name . '-locations comments-locations',
+				'label' => __( 'Tick to collect location data for comments:', $this->name ),
+				'value' => isset( $saved_locations['comments'] ) && $saved_locations['comments'] ? json_decode( $saved_locations['comments'] ) : $default_locations['comments'],
+				'choices' => array( $comments['comments'] = __( 'Comments', $this->name ) ),
 			)
 		);
 
@@ -491,7 +496,7 @@ class Vespucci_Admin {
 	public function settings_provider() {
 
 		echo '<hr />' . "\n";
-		echo '<p>' . __( 'Details on the mapping service to be used by this plugin.', $this->plugin_slug ) . '</p>' . "\n";
+		echo '<p>' . __( 'Details on the mapping service to be used by this plugin.', $this->name ) . '</p>' . "\n";
 
 	}
 
@@ -503,7 +508,7 @@ class Vespucci_Admin {
 	public function settings_defaults() {
 
 		echo '<hr />' . "\n";
-		echo '<p>' . __( 'Default settings used as fallback while rendering maps.', $this->plugin_slug ) . '</p>' . "\n";
+		echo '<p>' . __( 'Default settings used as fallback while rendering maps.', $this->name ) . '</p>' . "\n";
 
 	}
 
@@ -515,7 +520,7 @@ class Vespucci_Admin {
 	public function settings_markers() {
 
 		echo '<hr />' . "\n";
-		echo '<p>' . __( 'Default location markers to use as fallback while rendering maps.', $this->plugin_slug ) . '</p>' . "\n";
+		echo '<p>' . __( 'Default location markers to use as fallback while rendering maps.', $this->name ) . '</p>' . "\n";
 
 	}
 
@@ -527,7 +532,7 @@ class Vespucci_Admin {
 	public function settings_wp_objects() {
 
 		echo '<hr />' . "\n";
-		echo '<p>' . __( 'Collect coordinates for selected WordPress objects.', $this->plugin_slug ) . '</p>' . "\n";
+		echo '<p>' . __( 'Collect coordinates for selected WordPress objects.', $this->name ) . '</p>' . "\n";
 
 	}
 
@@ -553,20 +558,20 @@ class Vespucci_Admin {
 
 		endforeach;
 
-		return apply_filters( $this->plugin_slug . '_save_plugin_options', $output, $input );
+		return apply_filters( $this->name . '_save_plugin_options', $output, $input );
 	}
 
 	/**
 	 * Adds the meta box container.
 	 */
-	public function add_meta_box( $post_type ) {
+	public function add_location_box( $post_type ) {
 
 		$post_types = array();
 		$terms = array();
 		$users = array();
 		$comments = array();
 
-		$wp_objects = get_option( $this->plugin_slug . '_locations' );
+		$wp_objects = get_option( $this->name . '_locations' );
 		if ( ! empty( $wp_objects ) &&  is_array( $wp_objects ) ) :
 
 			foreach ( $wp_objects as $label => $items ) :
@@ -587,12 +592,12 @@ class Vespucci_Admin {
 
 			add_meta_box(
 				'vespucci_location',
-				__( 'Location', $this->plugin_slug ),
+				__( 'Location', $this->name ),
 				array( $this, 'render_meta_box_content' ),
 				'page',
 				'normal',
 				'low',
-				'post'
+				array( 'type' => 'post' )
 			);
 
 		endif;
@@ -608,17 +613,16 @@ class Vespucci_Admin {
 	 *
 	 * @return mixed
 	 */
-	public function save_meta_box( $post_id ) {
-
+	public function save_location_box( $post_id ) {
 
 		// Check if our nonce is set.
-		if ( ! isset( $_POST[$this->plugin_slug . '_location_nonce'] ) )
+		if ( ! isset( $_POST[$this->name . '_location_nonce'] ) )
 			return $post_id;
 
-		$nonce = $_POST[$this->plugin_slug . '_location_nonce'];
+		$nonce = $_POST[$this->name . '_location_nonce'];
 
 		// Verify that the nonce is valid.
-		if ( ! wp_verify_nonce( $nonce, $this->plugin_slug . '_location_nonce' ) )
+		if ( ! wp_verify_nonce( $nonce, $this->name . '_location_nonce' ) )
 			return $post_id;
 
 		// If this is an autosave, our form has not been submitted,
@@ -628,21 +632,25 @@ class Vespucci_Admin {
 
 		// Check the user's permissions.
 		if ( 'page' == $_POST['post_type'] ) {
+
 			if ( ! current_user_can( 'edit_page', $post_id ) )
 				return $post_id;
+
 		} else {
+
 			if ( ! current_user_can( 'edit_post', $post_id ) )
 				return $post_id;
+
 		}
 
 		// Sanitize the user input.
-		$data = sanitize_text_field( $_POST[$this->plugin_slug . '_location'] );
+		$data = sanitize_text_field( $_POST[$this->name . '_location'] );
 
 		// at this point should update location data etc.
 		$args = array(
 
 		);
-		vespucci::update_location( $args );
+		Vespucci::update_location( $args );
 
 		return $post_id;
 	}
@@ -655,12 +663,13 @@ class Vespucci_Admin {
 	 * @param object  $object   the WordPress object where the meta box appears
 	 * @param string  $cb_args  callback arguments
 	 */
-	public function render_meta_box_content( $object, $cb_args ) {
+	public function render_location_box_content( $object, $cb_args ) {
 
-		wp_nonce_field( $this->plugin_slug . '_location', $this->plugin_slug . '_location_nonce' );
+		wp_nonce_field( $this->name . '_location', $this->name . '_location_nonce' );
 
-		$saved = Vespucci::get_location( $object->ID, $cb_args['args'] );
-		$default = get_option( $this->plugin_slug . '_settings' );
+		$type = isset( $cb_args['args']['type'] ) ? $cb_args['args']['type'] : '';
+		$saved = Vespucci::get_location( $object->ID, $type );
+		$default = get_option( $this->name . '_settings' );
 		$value = $saved ? $saved : $default['map_defaults'];
 
 		$args = array(
@@ -674,6 +683,5 @@ class Vespucci_Admin {
 		Vespucci_Admin_Fields::map_field( $args );
 
 	}
-
 
 }

@@ -1,56 +1,228 @@
-
+/**
+ * Vespucci admin  stylesheet
+ */
 #vespucci {
 
+	// used in settings pages
 	fieldset {
 		margin: 10px 10px 20px;
 	}
 
-	#vespucci-map-fields {
-		overflow: hidden;
-		> div {
-			display: inline-block;
-			float: left;
-			margin-right: 5%;
-		}
-		.default-address {
-			label {
-				display: none;
-			}
-		}
-	}
-
-	#vespucci-geocode {
-		a {
-			text-decoration: none;
-		}
-	}
-
-	#vespucci-map {
-		width: 100%; max-width: 900px; height: 300px;
-		margin: 20px 0;
-	}
-
+	// images and map placeholder
 	.vespucci-placeholder {
 		background: #E4E4E4;
 		border: 1px solid rgba(0,0,0,.1);
 	}
 
+	// tooltips (jQuery TipTip)
+	.dashicons.dashicons-editor-help.tiptip {
+		color: rgba(0,0,0,.25) !important;
+		margin-left: 6px;
+		line-height: 28px;
+	}
+
+	// vertical tabs (jQuery UI Tabs)
+	.ui-tabs-vertical {
+
+		width: 100%;
+		overflow: hidden;
+		position: relative;
+		margin-top: 20px;
+		border: 1px solid #DFDFDF;
+		background-color: #FFF;
+
+		// utility div for navigation tabs background
+		.ui-tabs-nav-back {
+			width: 145px;
+			position: absolute;
+			top: 0; left: 0; bottom: 0;
+			background: #F1F1F1;
+			border-right: 1px solid #DFDFDF;
+		}
+
+		// navigation tabs container on the left
+		.ui-tabs-nav {
+
+			float: left;
+			background-color: #F1F1F1;
+			max-width: 145px; width: 100%;
+			margin: 0; padding: 10px 0 10px 0;
+
+			// each tab
+			li {
+
+				clear: left;
+				width: 100%;
+				display: block;
+				margin: 0; padding: 0;
+
+				// actual tab
+				a {
+					position: relative;
+					border-top: 1px solid #EAEAEA;
+					border-bottom: 1px solid #F1F1F1;
+					display: block;
+					padding: 10px;
+					text-decoration: none;
+					outline: none;
+					&:hover {
+						text-decoration: none;
+					}
+					&:focus {
+						outline: none;
+					}
+				}
+				a, div {
+					font-size: 13px;
+					line-height: 18px !important;
+				}
+
+				// when is active, looks like the panel
+				&.ui-tabs-active {
+					a {
+						color: #555;
+						margin: 0 -1px 0 0;
+						background-color: #FFF;
+						border-color: #DFDFDF;
+					}
+				}
+
+			}
+
+		}
+
+		// container of tab panels on the right
+		.ui-tabs-panels {
+
+			float: left;
+			width: calc(100% - 145px);
+
+			// each panel
+			.ui-tabs-panel {
+				width: 100%;
+				padding: 30px;
+			}
+
+		}
+
+		// standard field
+		p.form-field {
+
+			padding: 5px 20px 5px 162px !important;
+			overflow: hidden;
+
+			label {
+				float: left;
+				width: 150px;
+				font-size: 12px;
+				line-height: 28px;
+				padding: 0;
+				margin: 0 0 0 -150px;
+			}
+
+			input, select, textarea {
+				float: left;
+			}
+
+		}
+
+		// list is used for multiple inline fields
+		ul.form-field {
+
+			padding: 5px 20px 5px 162px !important;
+			overflow: hidden;
+
+			> li {
+				display: inline-block;
+				&.label {
+					float: left;
+					width: 150px;
+					margin: 0 0 0 -150px;
+				}
+			}
+
+			.label,
+			label {
+				padding: 0;
+				font-size: 12px;
+				line-height: 28px;
+			}
+
+			input, select {
+				margin: 0 5px 0 15px;
+			}
+
+		}
+
+		// specific fields rules
+		.form-field {
+			input[type="checkbox"] {
+				width: inherit;
+				margin-top: 6px;
+			}
+			.regular-text {
+				max-width: 480px;
+				width: 100%;
+			}
+			.small-text {
+				max-width: 68px; padding: 3px 5px;
+			}
+			.medium-text {
+				max-width: 168px; padding: 3px 5px;
+			}
+
+		}
+
+	} // end of vertical tabs
+
 	@media screen and (max-width: 782px) {
 
-		.vespucci-map-fields {
-			overflow: visible;
-			> div {
-				float: none; display: block; margin-right: 0;
+		// navigation tabs only display icons
+		.ui-tabs-nav {
+			max-width: 40px;
+		}
+		.ui-tabs-nav-back {
+			width: 40px;
+		}
+		// consequently some elements in tab panels change too
+		p.form-field,
+		ul.form-field {
+
+			width: calc(100% - 80px);
+			padding-left: 125px !important;
+
+			input[type="checkbox"] {
+				width: auto; margin-top: 6px;
 			}
+
+			input[type="number"] {
+				max-width: 120px;
+				margin-left: 0;
+			}
+
+			.regular-text {
+				max-width: 100%;
+				width: 100%;
+			}
+
+		}
+		p.form-field label,
+		ul.form-field .label {
+			width: 125px;
+			margin-left: -125px;
+		}
+
+		// there's no hovering in mobile devices
+		.tiptip,
+		// also no labels for the navigation tabs
+		.ui-tabs-nav > li > a > span {
+			display: none;
 		}
 
 	}
 
 	@media screen and (min-width: 783px) {
 
-		.marker-uploader {
-			display: inline-block;
-		}
 
 	}
 

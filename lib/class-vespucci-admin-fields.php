@@ -13,23 +13,24 @@
  * Vespucci Admin Fields static class.
  * Contains reusable fields used in the administration dashboard.
  *
- * @package Vespucci_Admin
- * @author  nekojira <fulvio@nekojira.com>
+ * @since   1.0.0
+ * @package Vespucci
  */
 class Vespucci_Admin_Fields extends Vespucci_Admin {
 
 	/**
-	 * Call plugin slug from public plugin class.
+	 * Get the plugin name.
+	 * Returns the plugin name string as defined in Vespucci Core class.
 	 *
-	 * @since  1.0.0
-	 *
-	 * @return string
+	 * @since   1.0.0
+	 * @return  string  the plugin name
 	 */
-	public static function plugin_slug() {
+	private static function get_plugin_name() {
 
-		$plugin = Vespucci_Plugin::get_instance();
-		return $plugin->get_plugin_slug();
+		$plugin = Vespucci_Core::get_instance();
+		$plugin_name = $plugin->get_plugin_name();
 
+		return $plugin_name;
 	}
 
 	/**
@@ -56,7 +57,8 @@ class Vespucci_Admin_Fields extends Vespucci_Admin {
 			'label' => '',
 			'description' => '',
 			'choices' => '',
-			'value' => ''
+			'value' => '',
+			'allow_null' => true
 		);
 		$args = wp_parse_args( $args, $defaults );
 		extract( $args, EXTR_SKIP );
@@ -69,13 +71,14 @@ class Vespucci_Admin_Fields extends Vespucci_Admin {
 		$html = $label ? '<label for="' . $id . '"> '  . $label . '</label>' . "\n" : '';
 
 		$options = '<select id="' . $id . '" name="' . $name . '">' . "\n";
+		$options .= $allow_null == true ? "\t" . '<option value=""></option>' . "\n" : '';
 		foreach( $choices as $key => $option ) :
 			$options  .=  "\t" . '<option value="' . $key . '" ' . selected( $key, $value, false ) . '>' . $option .'</option>' . "\n";
 		endforeach;
 		$options .= '</select>' . "\n";
 
 		$html .= $options;
-		$html .= $description ? '<p class="description">' . $description . '</p>' . "\n" : '';
+		$html .= $description ? '<span class="dashicons dashicons-editor-help tiptip" title="' . $description . '"></span>' . "\n" : '';
 
 		echo $html;
 	}
@@ -114,16 +117,15 @@ class Vespucci_Admin_Fields extends Vespucci_Admin {
 
 		$value = $value == true || $value == 1 ? 1 : 0;
 
-		$html  = '<input type="checkbox" class="' . $class . '" id="' . $id . '" name="' . $name . '" value="1" ' . checked( 1, $value, false ) . '/>' . "\n";
-		$html .= '<label for="' . $id . '"> '  . $label . '</label>' . "\n";
-		$html .= $description ? '<p class="description">' . $description . '</p>' . "\n" : '';
+		$html = '<label for="' . $id . '">'  . $label . '</label> ' . "\n";
+		$html .= '<input type="checkbox" class="' . $class . '" id="' . $id . '" name="' . $name . '" value="1" ' . checked( 1, $value, false ) . '/>' . "\n";
+		$html .= $description ? '<span class="dashicons dashicons-editor-help tiptip" title="' . $description . '"></span>' . "\n" : '';
 
 		echo $html;
-
 	}
 
 	/**
-	 * Locations field.
+	 * WordPress Objects field.
 	 * Echoes a group of checkboxes field inputs according to arguments passed.
 	 * Will populate an hidden field with checked choices via javascript.
 	 *
@@ -137,7 +139,7 @@ class Vespucci_Admin_Fields extends Vespucci_Admin {
 	 *                    'description' (optional) additional text description
 	 *                    'value' (optional) default value to populate the hidden field (and the checkboxes via javascript)
 	 */
-	public static function locations_field( $args ) {
+	public static function wp_objects_field( $args ) {
 
 		$defaults = array(
 			'id' => '',
@@ -156,46 +158,49 @@ class Vespucci_Admin_Fields extends Vespucci_Admin {
 			return;
 		}
 
+		$plugin_name = self::get_plugin_name();
 		$saved = (array) $value;
 
 		echo $label ? '<p>' . $label . '</p>' . "\n\n" : '';
 
-		$html = '<fieldset class="' . $class . ' locations">' . "\n";
+		echo '<table class="' . $class . ' ' . $plugin_name . '-wp-objects-field">' . "\n";
 
-		$checkboxes = '';
 		foreach( $choices as $option_key => $option_name ) :
 
-			$checkboxes .= "\t" . '<div class="location">' . "\n";
+			echo '<tr>';
 
+				$checkbox = "\t" . '<td class="wp-object-item">' . "\n";
 				// saved values (values in object are markers)
 				$selected = isset( $saved[$option_key] ) ? $option_key : '';
-
 				// individual choice among the current wp object group
-				$checkboxes .= "\t\t" . '<label for="location_' . $option_key . '">' . "\n";
-				$checkboxes .= "\t\t\t" . '<input type="checkbox" class="checkbox" id="location_' . $option_key . '" name="' . $option_key . '[location]" value="' . $option_key . '" ' . checked( $selected, $option_key, false ). ' />' . "\n";
-				$checkboxes .= "\t\t\t" . $option_name . "\n";
-				$checkboxes .= "\t\t" . '</label>' . "\n";
+				$checkbox .= "\t\t" . '<label for="location_' . $option_key . '">' . "\n";
+				$checkbox .= "\t\t\t" . '<input type="checkbox" class="checkbox" id="location_' . $option_key . '" name="' . $option_key . '[location]" value="' . $option_key . '" ' . checked( $selected, $option_key, false ). ' />' . "\n";
+				$checkbox .= "\t\t\t" . $option_name . "\n";
+				$checkbox .= "\t\t" . '</label>' . "\n";
+				$checkbox .= "\t" . '</td>' . "\n";
 
-				$args = array(
-					'id' => $option_key . '_marker',
-					'name' => $option_key . '[marker]',
-					'label' => sprintf( __( 'Marker for %s'), $option_name ),
-					'value' => isset( $saved[$option_key] ) ? $saved[$option_key] : '',
-					'size' => 'marker'
-				);
-				// adds a marker field for each available choice
-				self::marker_field( $args );
+				echo $checkbox;
 
-			$checkboxes .= "\t" . '</div>' . "\n";
+				echo '<td>';
+					$args = array(
+						'id' => $option_key . '_marker',
+						'name' => $option_key . '[marker]',
+						'label' => sprintf( __( 'Marker for %s', $plugin_name ), $option_name ),
+						'value' => isset( $saved[$option_key] ) ? $saved[$option_key] : '',
+						'size' => 'marker'
+					);
+					// adds a marker field for each available choice
+					self::marker_field( $args );
+				echo '</td>';
+
+			echo '</tr>';
 
 		endforeach;
 
-		$html .= $checkboxes;
-		$html .= "\t" . '<input type="hidden" class="selected-locations" id="' . $id . '" name="' . $name . '" value="' . json_encode( $value ) . '" />' . "\n";
-		$html .= '</fieldset>' . "\n";
-		$html .= $description ? '<p class="description">' . $description . '</p>' . "\n" : '';
+		echo '</table>';
 
-		echo $html;
+		echo '<input type="hidden" class="selected-locations" id="' . $id . '" name="' . $name . '" value="' . json_encode( $value ) . '" />' . "\n";
+		echo $description ? '<span class="dashicons dashicons-editor-help tiptip" title="' . $description . '"></span>' . "\n" : '';
 
 	}
 
@@ -234,7 +239,7 @@ class Vespucci_Admin_Fields extends Vespucci_Admin {
 
 		$html = '<label for="' . $id . '">' . $label . '</label> ' . "\n";
 		$html .= '<input type="text" class="' . $class . '" id="' . $id . '" name="' . $name . '" value="' . $value . '" placeholder="' . $placeholder . '" />' . "\n";
-		$html .= $description ? '<p class="description">' . $description . '</p>' . "\n" : '';
+		$html .= $description ? '<span class="dashicons dashicons-editor-help tiptip" title="' . $description . '"></span>' . "\n" : '';
 
 		echo $html;
 	}
@@ -282,7 +287,7 @@ class Vespucci_Admin_Fields extends Vespucci_Admin {
 
 		$html = '<label for="' . $id . '">' . $label . '</label> ' . "\n";
 		$html .= '<input type="number" class="small-text" id="' . $id . '" name="' . $name . '" value="' . $value . '" ' . $min . ' ' . $max . ' />' . "\n";
-		$html .= $description ? '<p class="description">' . $description . '</p>' . "\n" : '';
+		$html .= $description ? '<span class="dashicons dashicons-editor-help tiptip" title="' . $description . '"></span>' . "\n" : '';
 
 		echo $html;
 	}
@@ -300,7 +305,6 @@ class Vespucci_Admin_Fields extends Vespucci_Admin {
 	 *                    'label' this field label text
 	 *                    'description' (optional) additional text description
 	 *                    'value' default value
-	 *                    'size' image size to be used
 	 */
 	public static function marker_field( $args ) {
 
@@ -310,24 +314,23 @@ class Vespucci_Admin_Fields extends Vespucci_Admin {
 			'class' => '',
 			'label' => '',
 			'description' => '',
-			'value' => '',
-			'size' => 'marker'
+			'value' => ''
 		);
 		$args = wp_parse_args( $args, $defaults );
 		extract( $args, EXTR_SKIP );
 
-		if ( ! $id || ! $name || ! $label || ! $size ) {
+		if ( ! $id || ! $name || ! $label ) {
 			trigger_error( 'Missing or invalid required argument for marker field.', E_USER_WARNING );
 			return;
 		}
 
-		$html = '<div class="marker-uploader ' . $class . '">' . "\n";
+		$html = '<label for="' . $id . '">' . $label . '</label>' . "\n";
+		$html .= '<span class="marker-uploader ' . $class . '">' . "\n";
 		$html .= "\t" . '<span class="marker-preview"><img src="" height="" width="" /></span>' . "\n";
 		$html .= "\t" . '<input type="text" class="regular-text uploaded-marker-url" name="' . $name . '" id="' . $id . '" value="' . $value . '" />' . "\n";
-		$html .= "\t" . '<input type="button" class="button marker-upload-button" name="' . $id . '_button" id="' . $id . '_button" value="' . __( 'Upload', self::plugin_slug() ) . '" />' . "\n";
-		$html .= '<label for="' . $id . '">' . $label . '</label>';
-		$html .= $description ? '<p class="description">' . $description . '</p>' . "\n" : '';
-		$html .= '</div>' . "\n";
+		$html .= "\t" . '<input type="button" class="button marker-upload-button" name="' . $id . '_button" id="' . $id . '_button" value="' . __( 'Upload', self::get_plugin_name() ) . '" />' . "\n";
+		$html .= '</span>' . "\n";
+		$html .= $description ? '<span class="dashicons dashicons-editor-help tiptip" title="' . $description . '"></span>' . "\n" : '';
 
 		echo $html;
 	}
@@ -347,14 +350,12 @@ class Vespucci_Admin_Fields extends Vespucci_Admin {
 	 *                    'description' (optional) additional text description
 	 *                    'value' default value to populate the hidden field holding all the values
 	 */
-	public static function map_field( $args ) {
+	public static function location_box( $args ) {
 
 		$defaults = array(
 			'id' => '',
 			'name' => '',
 			'class' => '',
-			'label' => '',
-			'description' => '',
 			'value' => '',
 		);
 		$args = wp_parse_args( $args, $defaults );
@@ -365,173 +366,289 @@ class Vespucci_Admin_Fields extends Vespucci_Admin {
 			return;
 		}
 
-		$plugin = Vespucci_Plugin::get_instance();
-		$plugin_slug = $plugin->get_plugin_slug();
+		$plugin_name = self::get_plugin_name();
+		$default = get_option( $plugin_name . '_settings' );
+		$saved = $value ? (array) $value : $default['box_defaults'];
+
 		
-		$default = get_option( $plugin_slug . '_settings' );
-		$saved = $value ? (array) $value : $default['map_defaults'];
-
-		var_dump( json_encode( $value ) );
+		///////////////////////////////////
+		var_dump( $saved );
+		///////////////////////////////////
+		
 		?>
-		<div id="vespucci-map-settings">
+		<div id="<?php echo $plugin_name; ?>-location-box" <?php echo ! empty( $class ) ? 'class="' . $class . '"' : ''; ?>>
 
-			<?php echo $description ? '<p class="description">'. $description . '</p><br />' : ''; ?>
-
-			<div id="vespucci-map-geocode">
-				<label for="vespucci-map-search">
-					<input type="text" id="vespucci-map-search" placeholder="<?php _e( 'Search for address...', $plugin_slug ); ?>" class="regular-text geolocation-search" value="" />
+			<div id="<?php echo $plugin_name; ?>-location-geocode">
+				<label for="<?php echo $plugin_name; ?>-location-search">
+					<input type="text" id="<?php echo $plugin_name; ?>-map-search" placeholder="<?php _e( 'Search for address...', $plugin_name ); ?>" class="regular-text geolocation-search" value="" />
 				</label>
-				<div class="dashicons dashicons-location current-location" title="<?php _e( 'Click to set to your location', $plugin_slug ); ?>"></div>
-				<div class="dashicons dashicons-trash remove-location" title="<?php _e( 'Clear location', $plugin_slug ); ?>"></div>
+				<div id="<?php echo $plugin_name; ?>-get-user-location" class="dashicons dashicons-location" title="<?php _e( 'Click to set to your location', $plugin_name ); ?>"></div>
+				<div id="<?php echo $plugin_name; ?>-remove-location" class="dashicons dashicons-trash" title="<?php _e( 'Clear location', $plugin_name ); ?>"></div>
 			</div>
 
-			<div id="vespucci-map" class="vespucci-placeholder" style="width: 100%; height: 340px">
+			<div id="<?php echo $plugin_name; ?>-location-map" class="<?php echo $plugin_name; ?>-placeholder" style="width: 100%; height: 340px">
 			</div>
 
-			<input type="hidden" id="vespucci-map-lat" name="vespucci_coordinates['lat']" value="<?php echo isset( $saved['coordinates']['lat'] ) ? $saved['coordinates']['lat'] : 43.783300; ?>" />
-			<input type="hidden" id="vespucci-map-lng" name="vespucci_coordinates['lng']" value="<?php echo isset( $saved['coordinates']['lng'] ) ? $saved['coordinates']['lng'] : 11.250000; ?>" />
+			<div id="<?php echo $plugin_name; ?>-location-fields">
 
-			<div id="vespucci-map-fields">
-				<div class="vespucci-left">
-					<h4><?php _e( 'Map defaults:', $plugin_slug ); ?></h4>
-					<?php
+				<input type="hidden" id="<?php echo $plugin_name; ?>-location-lat" name="<?php echo $plugin_name; ?>_location['coordinates']['lat']" value="<?php echo isset( $saved['coordinates']['lat'] ) ? $saved['coordinates']['lat'] : 00.000000; ?>" />
+				<input type="hidden" id="<?php echo $plugin_name; ?>-location-lng" name="<?php echo $plugin_name; ?>_location['coordinates']['lng']" value="<?php echo isset( $saved['coordinates']['lng'] ) ? $saved['coordinates']['lng'] : 00.000000; ?>" />
+				<input type="hidden" id="<?php echo $plugin_name; ?>-location-code" name="<?php echo $plugin_name; ?>_location['address']['code']" value="<?php echo isset( $saved['address']['code'] ) ? $saved['address']['code'] : ''; ?>" />
+				<?php
 
-					echo '<p>';
-					$default_dragging = array(
-						'id' => 'vespucci-map-dragging',
-						'name' => 'default_dragging',
-						'label' => __( 'Allow map dragging', $plugin_slug ),
-						'value' => isset( $saved['dragging'] ) ? $saved['dragging'] : true
-					);
-					self::bool_field( $default_dragging );
-					echo '</p>';
+				$fields = self::location_box_fields( $saved );
+				if ( is_array( $fields ) ) :
 
-					echo '<p>';
-					$default_radius = array(
-						'id' => 'vespucci-map-type',
-						'name' => 'vespucci_map_type',
-						'label' => __( 'Map type', $plugin_slug ),
-						'value' => isset( $saved['map_type'] ) ? $saved['map_type'] : 'traffic',
-						'choices' => array(
-							'' => '',
-							'traffic' => __( 'Traffic', self::plugin_slug() ),
-							'terrain' => __( 'Terrain', self::plugin_slug() ),
-							'satellite' => __( 'Satellite', self::plugin_slug() ),
-						)
-					);
-					self::select_field( $default_radius );
-					echo '</p>';
+					echo '<div id="' . $plugin_name . '-location-tabs">';
 
-					echo '<p>';
-					$default_zoom = array(
-						'id' => 'vespucci-map-zoom-default',
-						'name' => 'vespucci_map_zoom[default]',
-						'label' => __( 'Default zoom', $plugin_slug ),
-						'value' => isset( $saved['zoom']['default'] ) ? $saved['zoom']['default'] : 10
-					);
-					self::number_field( $default_zoom );
-					echo '</p>';
+						echo '<div class="ui-tabs-nav-back"></div>';
 
-					echo '<p>';
-					$default_zoom_min = array(
-						'id' => 'vespucci-map-zoom-min',
-						'name' => 'vespucci_map_zoom[min]',
-						'label' => __( 'Min zoom', $plugin_slug ),
-						'value' => isset( $saved['zoom']['min'] ) ? $saved['zoom']['min'] : 0
-					);
-					self::number_field( $default_zoom_min );
-					echo '</p>';
+						echo '<ul>';
 
-					echo '<p>';
-					$default_zoom_max = array(
-						'id' => 'vespucci-map-zoom-max',
-						'name' => 'vespucci_map_zoom[max]',
-						'label' => __( 'Max zoom', $plugin_slug ),
-						'value' => isset( $saved['zoom']['max'] ) ? $saved['zoom']['max'] : 21
-					);
-					self::number_field( $default_zoom_max );
-					echo '</p>';
+							foreach( $fields as $tab ) :
 
-					echo '<p>';
-					$default_radius = array(
-						'id' => 'vespucci-map-radius',
-						'name' => 'vespucci_map_radius',
-						'label' => __( 'Distance radius', $plugin_slug ),
-						'value' => isset( $saved['radius'] ) ? $saved['radius'] : '50km',
-						'class' => 'tiny-text'
-					);
-					self::text_field( $default_radius );
-					echo '</p>';
+								$name = isset( $tab['name'] ) ? $tab['name'] : '';
+								$label = isset( $tab['label'] ) ? $tab['label'] : '';
+								$icon = isset( $tab['icon'] ) ? $tab['icon'] : '';
 
-					echo '<p>';
-					$default_marker = array(
-						'id' => 'vespucci-map-marker',
-						'name' => 'vespucci_map_marker',
-						'label' => __( 'Marker', $plugin_slug ),
-						'value' => isset( $saved['marker'] ) ? $saved['marker'] : ''
-					);
-					self::marker_field( $default_marker );
-					echo '</p>';
+								if ( $name && $label ) :
+									echo '<li><a href="#' . $plugin_name . '-' . $name . '" class="' . $plugin_name . '-location-tab"><div class="'. $icon . '"></div><span> ' . $label . '</span></a></li>';
+								endif;
 
-					?>
-				</div>
+							endforeach;
 
-				<div class="vespucci-right">
-					<div id="vespucci-map-address">
-						<h4><?php _e( 'Address:', $plugin_slug ); ?></h4>
-						<?php
+						echo '</ul>';
 
-						$fields = array(
-							'street' => array(
-								'name' => __( 'Street', $plugin_slug ),
-								'placeholder' => __( 'Street address', $plugin_slug ),
-							),
-							'area' => array(
-								'name' => __( 'Area', $plugin_slug ),
-								'placeholder' => __( 'Area, neighbourhood or locality', $plugin_slug ),
-							),
-							'city' => array(
-								'name' => __( 'City', $plugin_slug ),
-								'placeholder' => __( 'City', $plugin_slug ),
-							),
-							'state' => array(
-								'name' => __( 'State', $plugin_slug ),
-								'placeholder' => __( 'State or region', $plugin_slug ),
-							),
-							'postcode' => array(
-								'name' => __( 'Postcode', $plugin_slug ),
-								'placeholder' => __( 'Postcode or zip', $plugin_slug ),
-							),
-							'country' => array(
-								'name' => __( 'Country', $plugin_slug ),
-								'placeholder' => __( 'Country', $plugin_slug ),
-							),
-						);
+						echo '<div id="' . $plugin_name . '-location-panels" class="ui-tabs-panels">';
 
-						foreach ( $fields as $key => $field ) :
+							foreach( $fields as $panel ) :
 
-							echo '<p>';
-							self::text_field( array(
-								'id' => 'vespucci-map-address-' . $key,
-								'name' => 'vespucci_map_address[' . $key . ']',
-								'label' => $field['name'],
-								'value' => isset( $saved['address'][$key] ) ? $saved['address'][$key] : '',
-								'class' => 'regular-text default-' . $key,
-								'placeholder' => $field['placeholder']
-							) );
-							echo '</p>';
+								echo '<div id="' . $plugin_name . '-' . $panel['name'] . '">';
 
-						endforeach;
+									if ( isset( $panel['callback'] ) && count( $panel['callback'] ) <= 1 ) {
+										call_user_func( $panel['callback'][0] );
+									} else {
+										call_user_func_array( $panel['callback'][0], $panel['callback'][1] );
+									}
 
-						?>
-					</div>
-				</div>
+								echo '</div>';
 
-			</div>
+							endforeach;
 
-			<input class="vespucci-map-data" type="hidden" id="<?php echo $id; ?>" name="<?php echo $name; ?>" value=<?php echo json_encode( $value ); ?> />
-		</div>
-	<?php
+						echo '</div>';
+
+					echo '</div>';
+
+				endif;
+
+				//echo '<input class="' . $plugin_name . '-location-data" type="hidden" id="' . $id . '" name="' . $name . '" value="' . json_encode( $value ) . '" />';
+
+			echo '</div>';
+
+		echo '</div>';
+
+	}
+
+	/**
+	 *
+	 * @param array $values
+	 *
+	 * @return array
+	 */
+	private static function location_box_fields( $values ) {
+
+		$plugin_name = self::get_plugin_name();
+
+		$panels = array();
+		$panels['address'] = array(
+			'name'      => 'location-address',
+			'label'     => __( 'Address', $plugin_name ),
+			'icon'      => 'dashicons dashicons-flag',
+			'callback'  => array(
+				array( 'Vespucci_Admin_Fields', 'address_field' ),
+				array( array(
+					'values' => $values['address'],
+				) ),
+			),
+		);
+		$panels['settings'] = array(
+			'name'      => 'location-defaults',
+			'label'     => __( 'Settings', $plugin_name ),
+			'icon'      => 'dashicons dashicons-admin-generic',
+			'callback'  => array(
+				array( 'Vespucci_Admin_Fields', 'location_defaults_field' ),
+				array( array(
+					'values' => $values['settings'],
+				) ),
+			),
+		);
+
+		return apply_filters( $plugin_name . '_location_box_panels', $panels, $values );
+	}
+
+	/**
+	 * Callback function
+	 *
+	 * @param array $args
+	 */
+	private static function address_field( $args ) {
+
+		$plugin_name = self::get_plugin_name();
+
+		$saved = $args['values'];
+
+		$fields = array(
+			'street' => array(
+				'name' => __( 'Street', $plugin_name ),
+				'placeholder' => __( 'Street address', $plugin_name ),
+			),
+			'area' => array(
+				'name' => __( 'Area', $plugin_name ),
+				'placeholder' => __( 'Area, neighbourhood or locality', $plugin_name ),
+			),
+			'city' => array(
+				'name' => __( 'City', $plugin_name ),
+				'placeholder' => __( 'City', $plugin_name ),
+			),
+			'state' => array(
+				'name' => __( 'State', $plugin_name ),
+				'placeholder' => __( 'State or region', $plugin_name ),
+			),
+			'postcode' => array(
+				'name' => __( 'Postcode', $plugin_name ),
+				'placeholder' => __( 'Postcode or zip', $plugin_name ),
+			),
+			'country' => array(
+				'name' => __( 'Country', $plugin_name ),
+				'placeholder' => __( 'Country', $plugin_name ),
+			),
+		);
+
+		foreach ( $fields as $key => $field ) :
+
+			echo '<p class="form-field">';
+				self::text_field( array(
+					'id' => $plugin_name . '-map-address-' . $key,
+					'name' => $plugin_name . '_settings[box_defaults][address][' . $key . ']',
+					'label' => $field['name'],
+					'value' => isset( $saved['address'][$key] ) ? $saved['address'][$key] : '',
+					'class' => 'regular-text',
+					'placeholder' => $field['placeholder']
+				) );
+			echo '</p>';
+
+		endforeach;
+
+	}
+
+	/**
+	 * Callback function
+	 *
+	 * @param $args
+	 */
+	private static function location_defaults_field( $args ) {
+
+		$plugin_name = self::get_plugin_name();
+		$saved = $args['values'];
+
+		// ALLOW DRAGGING
+
+		echo '<p class="form-field">' . "\n";;
+
+			$default_dragging = array(
+				'id' => $plugin_name . '-map-dragging',
+				'name' => $plugin_name . '_settings[box_defaults][settings][dragging]',
+				'label' => __( 'Allow map dragging', $plugin_name ),
+				'value' => isset( $saved['settings']['dragging'] ) ? $saved['settings']['dragging'] : '',
+				'description' => __( 'If unchecked, disables dragging the map with finger or cursor.', $plugin_name ),
+			);
+			self::bool_field( $default_dragging );
+
+		echo '</p>' . "\n";;
+
+		// MAP TYPE
+
+		echo '<p class="form-field">' . "\n";;
+
+			$default = Vespucci_Core::default_options( 'settings' );
+			$default_provider = $default['map_provider'];
+			$default_map_type =  $default['box_defaults']['settings']['map_type'][$default_provider];
+
+			$saved_settings = get_option( $plugin_name . '_settings' );
+			$saved_provider = isset( $saved_settings['map_provider'] ) ? $saved_settings['map_provider'] : $default_provider;
+			$saved_map_type = isset( $saved_settings['box_defaults']['settings']['map_type'][$saved_provider] ) ? $saved_settings['box_defaults']['settings']['map_type'][$saved_provider] : $default_map_type;
+
+			$providers = Vespucci_Core::map_providers();
+			$map_types = $providers[$saved_provider]['map_types'];
+
+			$choices = array();
+			foreach ( $map_types as $map_type => $label ) :
+				$choices[$map_type] = $label;
+			endforeach;
+
+			$default_type = array(
+				'id'        => $plugin_name . '-map-type',
+				'name'      => $plugin_name . '_settings[box_defaults][settings][map_type][' . $saved_provider . ']',
+				'label'     => __( 'Map type', $plugin_name ),
+				'value'     => $saved_map_type,
+				'choices'   => $choices,
+				'allow_null' => true,
+				'description' => __( 'Select the map type that should be used to render this location.', $plugin_name ),
+			);
+			self::select_field( $default_type );
+		echo '</p>' . "\n";
+
+		echo '<ul class="form-field">' . "\n";
+
+			echo "\t" . '<li class="label">' . __( 'Zoom', $plugin_name ) . '</li>' . "\n";
+
+			$default_zoom = array(
+				'id' => $plugin_name . '-map-zoom-default',
+				'name' => $plugin_name . '_settings[box_defaults][settings][zoom][default]',
+				'label' => __( 'Default zoom', $plugin_name ),
+				'value' => isset( $saved['settings']['zoom']['default'] ) ? $saved['settings']['zoom']['default'] : '',
+			);
+			echo "\t" . '<li>'; self::number_field( $default_zoom ); echo '</li>' . "\n";
+
+			$default_zoom_min = array(
+				'id' => $plugin_name . '-map-zoom-min',
+				'name' => $plugin_name . '_settings[box_defaults][settings][zoom][min]',
+				'label' => __( 'Min zoom', $plugin_name ),
+				'value' => isset( $saved['settings']['zoom']['min'] ) ? $saved['settings']['zoom']['min'] : '',
+			);
+			echo "\t" . '<li>'; self::number_field( $default_zoom_min ); echo '</li>' . "\n";
+
+			$default_zoom_max = array(
+				'id' => $plugin_name . '-map-zoom-max',
+				'name' => $plugin_name . '_settings[box_defaults][settings][zoom][max]',
+				'label' => __( 'Max zoom', $plugin_name ),
+				'value' => isset( $saved['settings']['zoom']['max'] ) ? $saved['settings']['zoom']['max'] : '',
+			);
+			echo "\t" . '<li>'; self::number_field( $default_zoom_max ); echo '</li>' . "\n";
+
+		echo '</ul>';
+
+		echo '<p class="form-field">';
+			$default_radius = array(
+				'id' => $plugin_name . '-map-radius',
+				'name' => $plugin_name . '_settings[box_defaults][settings][radius]',
+				'label' => __( 'Distance radius', $plugin_name ),
+				'value' => isset( $saved['settings']['radius'] ) ? $saved['settings']['radius'] : '',
+				'class' => 'small-text',
+				'description' => __( 'When querying the map for nearby locations from this location, sets the default distance limit.', $plugin_name ),
+			);
+			self::text_field( $default_radius );
+		echo '</p>';
+
+		echo '<p class="form-field">';
+			$default_marker = array(
+				'id' => $plugin_name . '-map-marker',
+				'name' => $plugin_name . '_settings[box_defaults][settings][marker]',
+				'label' => __( 'Marker', $plugin_name ),
+				'value' => isset( $saved['marker'] ) ? $saved['marker'] : '',
+			);
+			self::marker_field( $default_marker );
+		echo '</p>';
 
 	}
 

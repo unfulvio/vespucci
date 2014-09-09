@@ -3,10 +3,8 @@
  * Vespucci: Geo Data for WordPress
  *
  * @package   Vespucci
- * @author    nekojira <fulvio@nekojira.com>
  * @license   GPL-2.0+
  * @link      http://example.com
- * @copyright 2014 nekojira
  *
  * @wordpress-plugin
  * Plugin Name:       Vespucci
@@ -26,12 +24,17 @@
 if ( ! defined( 'WPINC' ) )
 	die;
 
+// activation
 require_once plugin_dir_path( __FILE__ ) . 'lib/class-vespucci-plugin.php';
 register_activation_hook( __FILE__, array( 'Vespucci_Plugin', 'activate' ) );
-register_deactivation_hook( __FILE__, array( 'Vespucci_Plugin', 'deactivate' ) );
-add_action( 'plugins_loaded', array( 'Vespucci_Plugin', 'get_instance' ) );
 
-if ( is_admin() && ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) ) {
-	require_once plugin_dir_path( __FILE__ ) . 'lib/class-vespucci-admin.php';
-	add_action( 'plugins_loaded', array( 'Vespucci_Admin', 'get_instance' ) );
-}
+// deactivation
+require_once plugin_dir_path( __FILE__ ) . 'lib/class-vespucci-plugin.php';
+register_activation_hook( __FILE__, array( 'Vespucci_Plugin', 'deactivate' ) );
+
+// plugin core
+require_once plugin_dir_path( __FILE__ ) . 'lib/class-vespucci-core.php';
+
+// instantiate
+$vespucci = new Vespucci_Core();
+$vespucci->run();

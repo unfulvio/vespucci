@@ -10,8 +10,8 @@
  */
 
 // get plugin textdomain from slug
-$plugin = Vespucci::get_instance();
-$plugin_slug = $plugin->get_plugin_slug();
+$plugin = Vespucci_Core::get_instance();
+$plugin_slug = $plugin->get_plugin_name();
 
 ?>
 <div id="<?php echo $plugin_slug; ?>" class="wrap">
