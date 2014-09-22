@@ -1,18 +1,16 @@
 <?php
 /**
- * Vespucci: Geo Data for WordPress
+ * Vespucci: a geo spatial framework for WordPress
  *
  * @package   Vespucci
  * @license   GPL-2.0+
- * @link      http://example.com
+ * @link      http://github.com/nekojira/vespucci
  *
  * @wordpress-plugin
  * Plugin Name:       Vespucci
  * Plugin URI:        https://github.com/nekojira/vespucci
- * Description:       Bring geo spatial coordinates data storage and retrieval into WordPress and BuddyPress.
- * Version:           1.0.0
- * Author:            nekojira
- * Author URI:        https://gitub.con/nekojira/
+ * Description:       A geo spatial framework for WordPress.
+ * Version:           0.1.0
  * Text Domain:       vespucci
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt

@@ -3,6 +3,36 @@
  */
 #vespucci {
 
+	#vespucci-location-box-disable {
+		top: -42px; right: 44px;
+		position: absolute;
+		input[type="checkbox"] {
+			margin: 1px 0 0 3px;
+		}
+	}
+
+	.hidden {
+		display: none !important;
+	}
+
+	> .inside {
+		margin: 13px -13px -13px;
+		.location-title {
+			border: none;
+			box-shadow: none;
+			margin: 0 0 13px 5px;
+			width: 85%;
+		}
+		.location-tabs {
+			font-family: "Open Sans", sans-serif !important;
+			margin-top: 0;
+			border-top: none;
+		}
+		#vespucci-location-box {
+			border-top: none;
+		}
+	}
+
 	// used in settings pages
 	fieldset {
 		margin: 10px 10px 20px;
@@ -14,11 +44,91 @@
 		border: 1px solid rgba(0,0,0,.1);
 	}
 
+	.marker-uploader {
+
+		display: inline-block;
+		position: relative;
+		margin: 12px 0 8px;
+
+		.marker-preview {
+			display: block;
+			position: relative;
+			height: 96px; width: 96px;
+			padding: 10px;
+			border-radius: 8px;
+			border: dashed 1px #CCC;
+			background-color: #FCFCFC;
+		}
+
+		.marker-field-action {
+			position: absolute;
+			right: -9px;
+			background-color: #FFF;
+			border-radius: 12px;
+			cursor: pointer;
+			color: rgb(150,150,150);
+			&:hover {
+				color: rgb(50,50,50);
+			}
+		}
+
+		.marker-upload-button {
+			top: -4px;
+		}
+
+		.marker-remove-button {
+			top: 16px;
+		}
+
+		.tiptip {
+			position: absolute;
+			right: -9px;
+			bottom: -4px;
+			background-color: #FFF;
+			border-radius: 12px;
+			margin: 0 !important;
+			line-height: 100% !important;
+		}
+	}
+
 	// tooltips (jQuery TipTip)
 	.dashicons.dashicons-editor-help.tiptip {
 		color: rgba(0,0,0,.25) !important;
 		margin-left: 6px;
 		line-height: 28px;
+	}
+
+	#vespucci-location-geocode {
+		position: relative;
+		width: 100%;
+		display: block;
+		span {
+			position: absolute;
+			top: 8px;
+			opacity: 0.76;
+			cursor: pointer;
+			&#vespucci-geocode-request {
+				right: 10px;
+			}
+			&#vespucci-user-location {
+				right: 34px;
+			}
+			&:hover {
+				opacity: 0.96;
+			}
+		}
+	}
+
+	// location name
+	.location-title {
+		padding: 3px 8px;
+		font-size: 18px !important;
+		line-height: 24px !important;
+		height: 34px;
+		width: 100%;
+		outline: 0;
+		margin: 0 0 15px 0;
+		background-color: #fff;
 	}
 
 	// vertical tabs (jQuery UI Tabs)
@@ -28,8 +138,11 @@
 		overflow: hidden;
 		position: relative;
 		margin-top: 20px;
+		padding: 0;
 		border: 1px solid #DFDFDF;
-		background-color: #FFF;
+		border-radius: 0;
+		background: #FFF;
+		color: #323232;
 
 		// utility div for navigation tabs background
 		.ui-tabs-nav-back {
@@ -44,9 +157,10 @@
 		.ui-tabs-nav {
 
 			float: left;
-			background-color: #F1F1F1;
+			background: #F1F1F1 !important;
 			max-width: 145px; width: 100%;
 			margin: 0; padding: 10px 0 10px 0;
+			border: none;
 
 			// each tab
 			li {
@@ -55,25 +169,32 @@
 				width: 100%;
 				display: block;
 				margin: 0; padding: 0;
+				border: none !important;
+				background: transparent !important;
+				&:focus {
+					outline: none; box-shadow: none;
+				}
 
 				// actual tab
 				a {
 					position: relative;
-					border-top: 1px solid #EAEAEA;
-					border-bottom: 1px solid #F1F1F1;
+					border-top: 1px solid #EAEAEA !important;
+					border-bottom: 1px solid #F1F1F1 !important;
+					background: transparent !important;
 					display: block;
 					padding: 10px;
 					text-decoration: none;
 					outline: none;
+					float: none;
 					&:hover {
 						text-decoration: none;
 					}
 					&:focus {
-						outline: none;
+						outline: none; box-shadow: none;
 					}
 				}
 				a, div {
-					font-size: 13px;
+					font-size: 13px !important;
 					line-height: 18px !important;
 				}
 
@@ -82,8 +203,8 @@
 					a {
 						color: #555;
 						margin: 0 -1px 0 0;
-						background-color: #FFF;
-						border-color: #DFDFDF;
+						background: #FFF !important;
+						border-color: #DFDFDF !important;
 					}
 				}
 
@@ -114,7 +235,7 @@
 			label {
 				float: left;
 				width: 150px;
-				font-size: 12px;
+				font-size: 12px !important;
 				line-height: 28px;
 				padding: 0;
 				margin: 0 0 0 -150px;
@@ -144,8 +265,8 @@
 			.label,
 			label {
 				padding: 0;
-				font-size: 12px;
-				line-height: 28px;
+				font-size: 12px !important;
+				line-height: 28px !important;
 			}
 
 			input, select {
@@ -177,39 +298,47 @@
 
 	@media screen and (max-width: 782px) {
 
-		// navigation tabs only display icons
-		.ui-tabs-nav {
-			max-width: 40px;
-		}
-		.ui-tabs-nav-back {
-			width: 40px;
-		}
-		// consequently some elements in tab panels change too
-		p.form-field,
-		ul.form-field {
+		.ui-tabs-vertical {
 
-			width: calc(100% - 80px);
-			padding-left: 125px !important;
-
-			input[type="checkbox"] {
-				width: auto; margin-top: 6px;
+			// navigation tabs only display icons
+			.ui-tabs-nav,
+			.ui-tabs-nav-back {
+				width: 40px;
 			}
 
-			input[type="number"] {
-				max-width: 120px;
-				margin-left: 0;
+			// consequently some elements in tab panels change too
+			p.form-field,
+			ul.form-field {
+
+				width: calc(100% - 80px);
+				padding-left: 125px !important;
+
+				input[type="checkbox"] {
+					width: 25px; margin-top: 6px;
+				}
+
+				input[type="number"] {
+					max-width: 120px;
+					margin-left: 0;
+				}
+
+				.regular-text {
+					max-width: 100%;
+					width: 100%;
+				}
+
+				li.label {
+					display: none;
+				}
+
+				label {
+					display: block;
+					width: 125px;
+					margin-left: -125px;
+				}
+
 			}
 
-			.regular-text {
-				max-width: 100%;
-				width: 100%;
-			}
-
-		}
-		p.form-field label,
-		ul.form-field .label {
-			width: 125px;
-			margin-left: -125px;
 		}
 
 		// there's no hovering in mobile devices

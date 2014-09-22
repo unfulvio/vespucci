@@ -3,10 +3,8 @@
  * Vespucci
  *
  * @package   Vespucci
- * @author    nekojira <fulvio@nekojira.com>
  * @license   GPL-2.0+
  * @link      https://github.com/nekojira/vespucci
- * @copyright 2014 nekojira
  */
 
 /**
@@ -14,14 +12,13 @@
  * Public access functions with namespace
  *
  * @package Vespucci
- * @author  nejojira <fulvio@nekojira.com>
  */
 class Vespucci {
 
 	/**
 	 * The ID of this plugin.
 	 *
-	 * @since    1.0.0
+	 * @since    0.1.0
 	 * @access   private
 	 * @var      string    $name    The ID of this plugin.
 	 */
@@ -30,70 +27,308 @@ class Vespucci {
 	/**
 	 * The version of this plugin.
 	 *
-	 * @since    1.0.0
+	 * @since    0.1.0
 	 * @access   private
 	 * @var      string    $version    The current version of this plugin.
 	 */
 	private $version;
 
 	/**
+	 * Instance of this class.
+	 *
+	 * @since   0.1.0
+	 * @access  protected
+	 * @var     object
+	 */
+	protected static $instance = null;
+
+	/**
 	 * Initialize the class and set its properties.
 	 *
-	 * @since    1.0.0
+	 * @since    0.1.0	 *
 	 * @var      string    $name       The name of the plugin.
 	 * @var      string    $version    The version of this plugin.
 	 */
-	public function __construct( $name, $version ) {
+	public function __construct( $plugin_name = '', $plugin_version = '' ) {
 
-		$this->name = $name;
-		$this->version = $version;
+		// in case this class is instantiated outside the plugin
+		if ( empty( $plugin_name ) && empty( $plugin_version ) ) {
+			$plugin         = new Vespucci_Core();
+			$plugin_name    = $plugin->get_plugin_name();
+			$plugin_version = $plugin->get_version();
+		}
+
+		$this->name = $plugin_name;
+		$this->version = $plugin_version;
 
 	}
 
 	/**
-	 * Register the stylesheets for the public-facing side of the site.
+	 * Enqueue frontend styles.
+	 * Register the stylesheets for the public-facing side of the plugin.
 	 *
-	 * @since    1.0.0
+	 * @since    0.1.0
 	 */
 	public function enqueue_styles() {
 
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Plugin_Name_Public_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Plugin_Name_Public_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
-
-		wp_enqueue_style( $this->name, plugin_dir_url( __FILE__ ) . 'css/plugin-name-public.css', array(), $this->version, 'all' );
+		// nothing here yet!
 
 	}
 
 	/**
-	 * Register the stylesheets for the public-facing side of the site.
+	 * Enqueue frontend scripts.
+	 * Register the stylesheets for the public-facing side of the plugin.
 	 *
-	 * @since    1.0.0
+	 * @since    0.1.0
 	 */
 	public function enqueue_scripts() {
 
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Plugin_Name_Public_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Plugin_Name_Public_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
+		// nothing here yet!
 
-		wp_enqueue_script( $this->name, plugin_dir_url( __FILE__ ) . 'js/plugin-name-public.js', array( 'jquery' ), $this->version, FALSE );
+	}
 
+	/**
+	 * Return an instance of this class.
+	 *
+	 * @since     0.1.0
+	 *
+	 * @return    object    A single instance of this class.
+	 */
+	private static function get_instance() {
+
+		// If the single instance hasn't been set, set it now.
+		if ( self::$instance == null )
+			self::$instance = new self;
+
+		return self::$instance;
+	}
+
+	/**
+	 * Return the plugin name.
+	 *
+	 * @since   0.1.0
+	 *
+	 * @return  string  this plugin name
+	 */
+	public static function get_plugin_name() {
+		$plugin = self::get_instance();
+		return $plugin->name;
+	}
+
+	/**
+	 * Return the plugin version.
+	 *
+	 * @since   0.1.0
+	 *
+	 * @return  string  this plugin version
+	 */
+	public static function get_version() {
+		$plugin = self::get_instance();
+		return $plugin->version;
+	}
+
+	/**
+	 * Return a default option value.
+	 * Returns one of the plugin default options, according to the option name passed as argument.
+	 *
+	 * @since   0.1.0
+	 *
+	 * @param   string  $option the option name
+	 *
+	 * @return  array|string    the option defaults or empty string if empty, error or invalid option
+	 */
+	public static function default_options( $option ) {
+
+		$plugin_name = self::get_plugin_name();
+
+		$defaults = array();
+		$options = array();
+		if ( $option == 'settings' ) {
+
+			$options = array(
+				'map_provider' => 'google',
+				'map_provider_api_key' => array(
+					'google' => '',
+				),
+				'disable_scripts' => false,
+				'markers' => array(
+					'size' => 'full',
+					'current' => '',
+					'cluster' => '',
+					'group' => '',
+				),
+			);
+
+		} elseif( $option == 'location' ) {
+
+			$options = array(
+				'status' => '',
+				'lat' => 0.000000,
+				'lng' => 0.000000,
+				'title' => '',
+				'street' => '',
+				'area' => '',
+				'city' => '',
+				'district' => '',
+				'state' => '',
+				'postcode' => '',
+				'country' => '',
+				'countrycode' => '',
+			);
+
+		} elseif ( $option == 'meta' ) {
+
+			$options = array(
+				'dragging' => true,
+				'map_type' => array(
+					'google' => 'roadmap',
+				),
+				'zoom' => array(
+					'default' => 2,
+					'min' => 1,
+					'max' => 22,
+				),
+				'radius' => '50km',
+				'limit' => false,
+				'marker' => array(
+					'default' => '',
+				),
+			);
+
+		} elseif ( $option == 'objects' ) {
+
+			$options = array(
+				'post_types' => array(
+					'items' => array(),
+					'markers' => array(),
+				),
+				'taxonomies' => array(
+					'items' => array(),
+					'markers' => array(),
+				),
+				'users' => array(
+					'items' => array(),
+					'markers' => array(),
+				),
+				'comments' => array(
+					'items' => array(),
+					'markers' => array(),
+				)
+			);
+
+		}
+
+		if ( is_array( $options ) && ! empty ($options ) )
+			foreach ( $options as $key => $value )
+				$defaults[$key] = $value;
+
+		return apply_filters( $plugin_name . '_default_options', $defaults, $option );
+	}
+
+	/**
+	 * Get the available map providers.
+	 * Returns an array with registered map providers.
+	 *
+	 * @since   0.1.0
+	 *
+	 * @return  array   map providers
+	 */
+	public static function map_providers() {
+
+		$plugin_name = self::get_plugin_name();
+
+		$providers = array();
+		$providers['google'] = array(
+			'name'      => 'google-maps',
+			'label'     => __( 'Google Maps', $plugin_name ),
+			'api_key'   => '',
+			'map_types' => array(
+				'roadmap'   => __( 'Roadmap', $plugin_name ),
+				'terrain'   => __( 'Terrain', $plugin_name ),
+				'satellite' => __( 'Satellite', $plugin_name ),
+			),
+			'options'   => array(),
+		);
+
+		return apply_filters( $plugin_name . '_map_providers', $providers );
+	}
+
+	/**
+	 * Convert an address to string.
+	 * Helper function to format address data from object or array to string.
+	 *
+	 * @since  0.1.0
+	 *
+	 * @param  object|array  $address   the address
+	 * @param  string        $sep       an optional separator for the items in the address (default empty space)
+	 *
+	 * @return string  the address formatted as a string
+	 */
+	private static function stringify_address( $address, $sep = ' ' ) {
+
+		// this might be passed as an object, then typecast
+		if ( is_object( $address ) )
+			$address = (array) $address;
+
+		if ( ! is_array( $address ) )
+			return '';
+
+		// format with separator
+		foreach( $address as $key => $value )
+			if ( ! empty ( $value ) )
+				$formatted[ $key ] = $value . $sep . ' ';
+
+		// merge with defaults
+		$default = self::default_options( 'location' );
+		$address_vars = wp_parse_args( $address, $default );
+		extract( $address_vars, EXTR_SKIP );
+
+		$string = $street . $area . $city . $district . $state . $postcode . $country;
+
+		return $string;
+	}
+
+	/**
+	 * Validate date.
+	 * Helper function to validate a date string according to a date format.
+	 *
+	 * @since   0.1.0
+	 *
+	 * @param   string  $date   the date to check
+	 * @param   string  $format the format on how the $date should be evaluated
+	 *
+	 * @return  bool    tells whether the date validates or not
+	 */
+	private static function validate_date( $date, $format = 'Y-m-d H:i:s') {
+		$d = DateTime::createFromFormat($format, $date);
+		return $d && $d->format($format) == $date;
+	}
+
+	/**
+	 * Check if a location exists.
+	 * Queries the database to see if a location id corresponds to a valid row.
+	 *
+	 * @since   0.1.0
+	 *
+	 * @param   int $id the id of the location to check
+	 *
+	 * @return  bool    true if location exists, false if doesn't
+	 */
+	public static function location_exists( $id ) {
+
+		if ( ! is_int( $id ) )
+			return false;
+
+		global $wpdb;
+		$table = $wpdb->prefix . 'locations';
+		$result = $wpdb->get_results( "
+			SELECT 	*
+			FROM 	$table
+			WHERE 	id = $id
+		" );
+		$result = isset( $result[0] ) ? $result[0] : $result;
+
+		return $result ? true : false;
 	}
 
 	/**
@@ -101,34 +336,53 @@ class Vespucci {
 	 * Returns a location as an object from database, for a given WordPress object.
 	 * For example, will return any saved location data for 'post' with 'id' = 23 or 'user' with 'id' = 156.
 	 *
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 *
 	 * @param  int|string  $id    the corresponding WordPress object id
 	 * @param  string      $type  the type of object to query (can be either 'post', 'term', 'user' or 'comment')
 	 *
 	 * @return object|string resulting location from database or empty string if no results
 	 */
-	public static function get_location( $id = '', $type = '' ) {
+	public static function get_location( $type = '', $id = '' ) {
 
-		if ( ! $id || ! $type ) {
+		if ( empty( $type ) || empty( $id ) ) {
+
 			$result = self::try_get_location();
-		} elseif ( ! is_int( $id ) ) {
-			trigger_error( 'Trying to get location with an ID which is not a number.', E_USER_WARNING );
-			return '';
-		} elseif ( ! in_array( $type, array( 'post', 'term', 'user', 'comment' ) ) ) {
-			trigger_error( 'Trying to get location without specifying a valid object type.', E_USER_WARNING );
-			return '';
+
+		} elseif ( ! is_int( $id ) || $id === 0 || ! in_array( $type, array( 'post', 'user', 'comment', 'term' ) ) ) {
+
+			trigger_error( 'Trying to get a location using invalid arguments.', E_USER_NOTICE );
+			$result = '';
+
 		} else {
+
 			global $wpdb;
-			$table = $wpdb->prefix . self::plugin_slug() . '_' . $type . 's';
-			$result = $wpdb->get_row( "
-					SELECT *
-					FROM $table
-					WHERE id = $id
-			" );
+			$result = '';
+
+			// first find the corresponding location connected to the specified object
+			$table    = $wpdb->prefix . 'location_relationships';
+			$loc_id = $wpdb->get_var( $wpdb->prepare( "
+					SELECT 	location_id
+					FROM 	$table
+					WHERE	object_name = %s
+					AND 	object_id = %d
+			", $type, $id ) );
+
+			// if there's a match, look up for the location data
+			if ( ! is_null( $loc_id ) )  :
+
+				$table  = $wpdb->prefix . 'locations';
+				$result = $wpdb->get_results( $wpdb->prepare( "
+						SELECT 	*
+			            FROM	$table
+			            WHERE	id = %d
+	            ", $loc_id ) );
+
+			endif;
+
 		}
 
-		return is_array( $result ) ? $result[0] : '';
+		return isset( $result[0] ) ? $result[0] : $result;
 	}
 
 	/**
@@ -136,7 +390,7 @@ class Vespucci {
 	 * Internal helper function to retrieve a location from database,
 	 * when no id or type variables are passed.
 	 *
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 *
 	 * @return object|string will return empty string if no success or object
 	 */
@@ -145,885 +399,429 @@ class Vespucci {
 		global $post, $comment, $user;
 
 		$location = '';
+
 		if ( isset( $post->ID ) ) {
-			$location = self::get_location( $post->ID, 'post' );
+			$location = self::get_location( 'post', $post->ID );
 		} elseif ( isset( $user->ID ) ) {
-			$location = self::get_location( $user->ID, 'user' );
+			$location = self::get_location( 'user', $user->ID );
 		} elseif ( isset( $comment->comment_ID ) ) {
-			$location = self::get_location( $comment->comment_ID, 'comment' );
+			$location = self::get_location( 'comment', $comment->comment_ID );
 		}
 
 		return $location;
 	}
 
 	/**
-	 * Get coordinates for location.
-	 * Returns an array with lat and lng keys for a given location object.
+	 * Save or update a location.
+	 * Saves or updates (if already existing) a location to database.
 	 *
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 *
-	 * @param object|string $location the location (if empty string, will attempt to determine location)
+	 * @param   array   $args   the location data
+	 * @param   string  $type   the WordPress object the location is attached to ('post', 'user', 'term', 'comment'...)
+	 * @param   int     $id     the id of the WordPres object the location is attached to
 	 *
-	 * @return array|string coordinates as an array or empty string if no coordinates found or error
+	 * @return  int|null    will return the location id if database interaction occurred, or null in case of errors
 	 */
-	public static function get_coordinates( $location = '' ) {
+	public static function save_location( $args, $type, $id ) {
 
-		$coordinates = '';
-		$location = ! empty ( $location ) ? $location : self::try_get_location();
-
-		if ( isset( $location->lat ) && isset( $location->lng ) )
-			$coordinates = array( 'lat' => $location->lat, 'lng' => $location->lng );
-
-		return $coordinates;
-	}
-
-	/**
-	 * Convert an address to string.
-	 * Formats an address from object or array to string.
-	 *
-	 * @since  1.0.0
-	 *
-	 * @param  object|array  $address  the address
-	 * @param  string        $sep      an optional separator for the items in the address (default empty space)
-	 *
-	 * @return string  the address formatted as a string
-	 */
-	private static function stringify_address( $address, $sep = ' ' ) {
-
-		if ( is_object( $address ) )
-			$address = (array) $address;
-
-		if ( ! is_array( $address ) )
-			return '';
-
-		$string = '';
-		foreach( $address as $item )
-			$string .= $item . $sep;
-
-		return $string;
-	}
-
-	/**
-	 * Get location address.
-	 * Returns the address for a given location object from database as an array.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param  object|string $location  the location object, if empty string will attempt to determine the location
-	 * @param  string        $format    the return format: associative array (default array, object, json or string)
-	 * @param  string        $sep       if $format is 'string', an optional separator can be defined (default empty space)
-	 *
-	 * @return array|object  outputs the location address
-	 */
-	public static function get_address( $location = '', $format = 'array', $sep = ' ' ) {
-
-		$location = ! empty ( $location ) ? $location : self::try_get_location();
-
-		$address = '';
-		if ( is_object( $location ) ) :
-
-			// $format == OBJECT
-			$address = new stdClass();
-			$address->street = isset( $location->street ) ? $location->street : '';
-			$address->area = isset( $location->area ) ? $location->area : '';
-			$address->city = isset( $location->city ) ? $location->city : '';
-			$address->state = isset( $location->state ) ? $location->state : '';
-			$address->postcode = isset( $location->postcode ) ? $location->postcode : '';
-			$address->country = isset( $location->country ) ? $location->country : '';
-
-		endif;
-
-		if ( $address AND $format == 'array' ) {
-			$address = (array) $address;
-		} elseif ( $address AND $format == 'json' ) {
-			$address = json_encode( $address );
-		} elseif( $address AND $format == 'string' ) {
-			$address = self::stringify_address( $address, $sep );
+		// bail out early if location object relationship is unspecified or invalid
+		if ( ! is_int( $id ) || ! in_array( $type, array( 'post', 'page', 'user', 'term', 'comment' ) ) ) {
+			trigger_error( 'Cannot save location without a valid object type or object id.', E_USER_WARNING );
+			return null;
 		}
 
-		return $address;
-	}
-
-	/**
-	 * Output an address in HTML markup.
-	 * Renders an address as HTML.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param array  $address an address with properly labeled keys
-	 * @param bool   $country set to true to display country key, default false
-	 * @param bool   $schema if true outputs additional schema.org microdata, default true
-	 * @param bool   $echo if true, echoes the output, false only returns it
-	 *
-	 * @return string the address html markup, empty string if address data was absent
-	 */
-	public static function address_html( $address = array(), $country = false, $schema = true, $echo = true ) {
-
-		$html = '';
-		$address = ! empty ( $address ) ? $address : self::get_address();
-
-		if ( ! empty ( $address ) && is_array( $address ) ) :
-
-			$html = "\n";
-			$html .= '<span class="address" ' . $schema == true ? 'itemprop="address" itemscope itemtype="http://schema.org/PostalAddress"' : '' . '>' . "\n";
-			$html .= isset( $address['street'] ) || isset( $address['area'] ) ? "\t" . '<span class="street" ' . $schema == true ? 'itemprop="streetAddress"' : '' . '>' . $address['street'] . ' ' . $address['area'] . '</span>' . "\n" : '';
-			$html .= isset( $address['city'] ) ? "\t" . '<span class="city" ' . $schema == true ? 'itemprop="addressLocality"' : '' . '>' . $address['city'] . '</span>' . "\n" : '';
-			$html .= isset( $address['state'] ) ? "\t" . '<span class="state" ' . $schema == true ? 'itemprop="addressRegion"' : '' . '>' . $address['state'] . '</span>' . "\n" : '';
-			$html .= isset( $address['postcode'] ) ? "\t" . '<span class="postcode" ' . $schema == true ? 'itemprop="postalCode"' : '' . '>' . $address['postcode'] . '</span>' . "\n" : '';
-			$html .= $country == true ? isset( $address['country'] ) ? "\t" . '<span class="country" ' . $schema == true ? 'itemprop="addressCountry"' : '' . '>' . $address['country'] . '</span>' . "\n" : '' : '';
-			$html .= '</span>' . "\n";
-
-		endif;
-
-		if ( $echo == true )
-			echo $html;
-
-		return $html;
-	}
-
-	/**
-	 * Get metadata for location.
-	 * Returns meta information for a given location object
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param object|string $location the location object, if empty string will attempt to determine the location itself
-	 *
-	 * @return array|string empty string if no meta or error, or array of data
-	 */
-	public static function get_meta( $location ) {
-
-		$location_meta = '';
-		$location = ! empty ( $location ) ? $location : self::try_get_location();
-
-		if ( is_object( $location ) && isset( $location->meta ) ) :
-
-			$meta = json_decode( $location->meta );
-
-			if ( is_array( $meta ) ) :
-
-				foreach ( $meta as $key => $value ) :
-					$location_meta[$value] = $key;
-				endforeach;
-
-			endif;
-
-		endif;
-
-		return $location_meta;
-	}
-
-	/**
-	 * Get locations for given arguments.
-	 * Returns location objects according to queried parameters.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param string       $in      the key to query db for (either 'coordinates', 'postcode', 'city', 'state', 'country')
-	 * @param string|array $value   the value to query for, a string value or array with lat, lng coordinates
-	 * @param string       $type    type of objects to query (can be either 'posts', 'terms', 'users' or 'comments')
-	 * @param bool         $private if set to false filters out private locations from results, default true
-	 *
-	 * @return array|string empty string if no matches, or array of objects with locations results from database
-	 */
-	public static function get_locations_for( $in, $value, $type, $private = true ) {
-
-		if ( ! in_array( $in, array( 'coordinates', 'postcode', 'city', 'state', 'country' ) ) ) {
-			trigger_error( 'Trying to search locations matching an invalid or missing criteria.', E_USER_WARNING );
-			return '';
-		}
-
-		if ( ! in_array( $type, array( 'posts', 'terms', 'users', 'comments' ) ) ) {
-			trigger_error( 'Trying to get locations for an invalid or missing type of objects.', E_USER_WARNING );
-			return '';
-		}
-
-		global $wpdb;
-		$table = $wpdb->prefix . self::plugin_slug() . '_' . $type;
-
-		$results = '';
-		if ( $in == 'coordinates' ) {
-
-			$lat = isset( $value['lat'] ) ? $value['lat'] : '';
-			$lng = isset( $value['lng'] ) ? $value['lng'] : '';
-			if ( $lat && $lng ) {
-				$results = $wpdb->get_results(
-	                $wpdb->prepare( "
-						SELECT *
-		                FROM %s
-		                WHERE lat = %d
-		                AND lng = %d
-					", $table, $lat, $lng )
-				);
-			}
-
-		} else {
-
-			if ( ! is_string( $value ) )
-				return '';
-
-			$results = $wpdb->get_results(
-			                $wpdb->prepare( "
-						SELECT *
-						FROM %s
-						WHERE %s = %s
-					", $table, $in, $value )
-			);
-
-		}
-
-		if ( $private == false )
-			$results = self::get_public_locations( $results );
-
-		return $results;
-	}
-
-	/**
-	 * Haversine formula to query nearby objects.
-	 * Queries database for objects within a distance from specified lat,lng coordinates and a radius.
-	 * @see http://en.wikipedia.org/wiki/Haversine_formula
-	 * @see https://developers.google.com/maps/articles/phpsqlsearch_v3#findnearsql
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param string     $table  type of objects to query (can be either 'posts', 'terms' or 'users')
-	 * @param number     $lat    latitude to center the query from
-	 * @param number     $lng    longitude to center the query from
-	 * @param number     $radius amount of distance to query objects until
-	 * @param string     $unit   a valid distance unit for the specified $radius amount
-	 * @param int|string $limit  limits the number of posts, no limit if empty string or negative
-	 *
-	 * @return string|array empty string if no results, array of objects if there are matches
-	 */
-	private static function haversine_query( $table, $lat, $lng, $radius, $unit = 'km', $limit = '' ) {
-
-		// convert to kilometers always
-		$radius = self::convert_distance( $radius, $unit, 'km' );
-		// in miles the constant would be 3959
-		$constant = 6371; // km
-
-		$results = '';
-		if ( ! is_nan( $radius ) ) :
-
-			if ( is_int( $limit ) && $limit >= 1 )
-				$limit = " LIMIT 0 , {$limit}";
-
-			global $wpdb;
-			$results = $wpdb->query( "
-		            SELECT *, (
-						$constant * acos( cos( radians( $lat ) ) *
-		                        cos( radians( lat ) ) *
-		                        cos( radians( lng ) - radians( $lng ) ) +
-		                        sin( radians( $lat ) ) *
-		                        sin( radians( lat ) )
-						) ) AS distance
-					FROM $table
-					HAVING distance < $radius
-					ORDER BY distance
-					$limit "
-			);
-
-		endif;
-
-		return $results;
-	}
-
-	/**
-	 * Parse distance.
-	 * Parses a single string containing a single number and a valid distance unit.
-	 * If valid, returns them separated into an array, otherwise returns empty.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param  string $distance value containing one number and one distance measurement unit
-	 *
-	 * @return array|string empty string if parse fails, array with parsed 'quantity' and 'unit' if succeeds
-	 */
-	public static function parse_distance( $distance ) {
-
-		// allowed distance units
-		$units = array( 'm', 'meters', 'meter', 'metre', 'metres', 'km', 'kilometers', 'kilometer', 'kilometres', 'kilometre', 'mil', 'swedish mile', 'swedish miles', 'norwegian mile', 'norwegian miles', 'scandinavian mile', 'scandinavian miles', 'ft', 'feet', 'foot', 'yd', 'yards', 'yard', 'mi', 'miles', 'mile', 'nm', 'nmi', 'nautical miles', 'nautical mile' );
-		// disjoints allowed units from quantity
-		$pattern = '/^(\d+)\s*(' . join( "|", array_map( "preg_quote", $units ) ) . ')$/';
-		preg_match( $pattern, $distance, $matches );
-		// get radius and unit
-		list( , $radius, $unit ) = $matches;
-
-		return is_numeric( $radius ) && is_string( $unit ) ? array( 'quantity' => $radius, 'unit' => $unit ) : '';
-	}
-
-	/**
-	 * Get locations nearby given coordinates.
-	 * Returns an array of location objects within a given distance from given coordinates center.
-	 *
-	 * @param string     $type     one of the allowed types to query (either 'posts', 'terms', 'users', 'comments')
-	 * @param number     $lat      latitude to query from
-	 * @param number     $lng      longitude to query from
-	 * @param string     $distance radius to query within given coordinates above, default '50km'
-	 * @param int|string $limit    optional, limit results to a given amount, empty string if no limit (default)
-	 * @param bool       $private  if set to false, filters out results marked as private, default true
-	 *
-	 * @return array|string empty string if no results, or array of resulting location objects
-	 */
-	public static function get_locations_nearby( $type, $lat, $lng, $distance = '50km', $limit = '', $private = true ) {
-
-		if ( ! in_array( $type, array( 'posts', 'terms', 'users', 'comments' ) ) ) {
-			trigger_error( 'Trying to query locations for a missing or invalid group of objects.', E_USER_WARNING );
-			return '';
-		}
-
-		if ( is_nan( $lat ) || is_nan( $lng ) ) {
-			trigger_error( 'Specified longitude or latitude for query is not a number.', E_USER_WARNING );
-			return '';
-		}
-
-		$parsed = self::parse_distance( $distance );
-		if ( ! $parsed ) {
-			trigger_error( 'Specified distance in location query could not be interpreted.', E_USER_WARNING );
-			return '';
-		}
-
-		$radius = $parsed['quantity'];
-		$unit = $parsed['unit'];
-
-		global $wpdb;
-		$table = $wpdb->prefix . self::plugin_slug() . '_' . $type;
-
-		$results = self::haversine_query( $table, $lat, $lng, $radius, $unit, $limit );
-
-		return $results;
-	}
-
-	/**
-	 * Get posts nearby given coordinates.
-	 * This is a shortcut alias for get_locations_nearby() method.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param number     $lat      latitude to query from
-	 * @param number     $lng      longitude to query from
-	 * @param string     $distance radius to query within given coordinates above, default '50km'
-	 * @param int|string $limit    optional, limit results to a given amount, empty string if no limit (default)
-	 * @param bool       $private  if set to false, filters out results marked as private, default true
-	 *
-	 * @return array|string empty string if no results, or array of resulting location objects matching posts
-	 */
-	public static function get_posts_nearby( $lat, $lng, $distance = '50km', $limit = '', $private = true ) {
-
-		$results = self::get_locations_nearby( 'posts', $lat, $lng, $distance, $limit, $private );
-
-		return $results;
-	}
-
-	/**
-	 * Get terms nearby given coordinates.
-	 * This is a shortcut alias for get_locations_nearby() method.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param number     $lat      latitude to query from
-	 * @param number     $lng      longitude to query from
-	 * @param string     $distance radius to query within given coordinates above, default '50km'
-	 * @param int|string $limit    optional, limit results to a given amount, empty string if no limit (default)
-	 * @param bool       $private  if set to false, filters out results marked as private, default true
-	 *
-	 * @return array|string empty string if no results, or array of resulting location objects matching terms
-	 */
-	public static function get_terms_nearby( $lat, $lng, $distance = '50km', $limit = '', $private = true ) {
-
-		$results = self::get_locations_nearby( 'terms', $lat, $lng, $distance, $limit, $private );
-
-		return $results;
-	}
-
-	/**
-	 * Get users nearby given coordinates.
-	 * This is a shortcut alias for get_locations_nearby() method.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param number     $lat      latitude to query from
-	 * @param number     $lng      longitude to query from
-	 * @param string     $distance radius to query within given coordinates above, default '50km'
-	 * @param int|string $limit    optional, limit results to a given amount, empty string if no limit (default)
-	 * @param bool       $private  if set to false, filters out results marked as private, default true
-	 *
-	 * @return array|string empty string if no results, or array of resulting location objects matching users
-	 */
-	public static function get_users_nearby( $lat, $lng, $distance = '50km', $limit = '', $private = true ) {
-
-		$results = self::get_locations_nearby( 'users', $lat, $lng, $distance, $limit, $private );
-
-		return $results;
-	}
-
-	/**
-	 * Get comments nearby given coordinates.
-	 * This is a shortcut alias for get_locations_nearby() method.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param number     $lat      latitude to query from
-	 * @param number     $lng      longitude to query from
-	 * @param string     $distance radius to query within given coordinates above, default '50km'
-	 * @param int|string $limit    optional, limit results to a given amount, empty string if no limit (default)
-	 * @param bool       $private  if set to false, filters out results marked as private, default true
-	 *
-	 * @return array|string empty string if no results, or array of resulting location objects matching users
-	 */
-	public static function get_comments_nearby( $lat, $lng, $distance = '50km', $limit = '', $private = true ) {
-
-		$results = self::get_locations_nearby( 'comments', $lat, $lng, $distance, $limit, $private );
-
-		return $results;
-	}
-
-	/**
-	 * Convert a distance unit of measurement in metres.
-	 * Takes the original unit and returns the equivalent in metres.
-	 * The unit to convert must be a valid input or the function will return empty.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param string $unit a valid distance unit to convert in meters
-	 *
-	 * @return number|string returns a number or empty string if original unit to convert was invalid or unrecognized
-	 */
-	private static function metrify( $unit ) {
-
-		$in_meters = '';
-		if ( $unit == 'm' || 'meter' || 'meters' || 'metre' || 'metres' ) {
-			$in_meters = 1;
-		} elseif ( $unit == 'km' || 'kilometer' || 'kilometers' || 'kilometre' || 'kilometres' ) {
-			$in_meters = 1000;
-		} elseif ( $unit == 'mil' || 'swedish mile' || 'swedish miles' || 'norwegian mile' || 'norwegian miles' || 'scandinavian mile' || 'scandinavian miles' ) {
-			$in_meters = 10000;
-		} elseif ( $unit == 'ft' || 'foot' || 'feet' ) {
-			$in_meters = 0.3048;
-		} elseif ( $unit == 'yd' || 'yard' || 'yards' ) {
-			$in_meters = 0.9144;
-		} elseif ( $unit == 'mi' || 'mile' || 'miles' ) {
-			$in_meters = 1609.344;
-		} elseif ( $unit == 'nm' || 'nmi' || 'nautical mile' || 'nautical miles' ) {
-			$in_meters = 1852;
-		} else {
-			trigger_error( 'The distance unit of measure could not be recognized.', E_USER_WARNING );
-			return '';
-		}
-
-		return $in_meters;
-	}
-
-	/**
-	 * Convert a distance from one unit of measure into another.
-	 * Converts any amount of distance from one measurement into another.
-	 * Will return the converted amount, otherwise empty string if one of the unit is invalid or unrecognized.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param  int|float  $amount  quantity to convert
-	 * @param  string     $from    original distance unit to convert from
-	 * @param  string     $to      distance unit to convert to
-	 *
-	 * @return number|string  resulting amount of converted distance, empty string on error
-	 */
-	private static function convert_distance( $amount, $from, $to ) {
-
-		if ( is_nan( $amount ) ) {
-			trigger_error( 'The distance amount to convert is not a number.', E_USER_WARNING );
-			return '';
-		}
-
-		$from = self::metrify( $from );
-		$to = self::metrify( $to );
-
-		if ( ! $from OR ! $to )
-			return '';
-
-		$result = $amount * ( $from / $to );
-
-		return $result;
-	}
-
-	/**
-	 * Get distance between points.
-	 * Calculates the distance between sets of coordinate pairs and returns the amount.
-	 * Points must be passed as an array of ['lat'], ['lng'] values; must be at least one pair.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param  array   $points  distance as in coordinate pairs (lat, lng) to calculate from
-	 * @param  string  $unit    unit of measurement to output the final results
-	 * @param  bool    $sum     if true, will return the sum of all distances from one point to another,
-	 *                          false will produce an array of distances, default true
-	 *
-	 * @return number|array|string  number if $sum is set to true, array of numbers if false, empty string on error
-	 */
-	public static function get_distance( $points, $unit, $sum = true ) {
-
-		$distance = '';
-		$result = '';
-
-		$p = count( $points );
-		if ( $p >= 2 ) :
-
-			$i = 2;
-			while ( $points ) :
-
-				$point_1['lat'] = isset( $points[$i-1]['lat'] ) ? $points[$i-1]['lat'] : '';
-				$point_1['lng'] = isset( $points[$i-1]['lng'] ) ? $points[$i-1]['lng'] : '';
-				$point_2['lat'] = isset( $points[$i]['lat'] ) ? $points[$i]['lat'] : '';
-				$point_2['lng'] = isset( $points[$i]['lng'] ) ? $points[$i]['lng'] : '';
-
-				$dist = '';
-				if ( is_numeric( $point_1['lat'] ) && is_numeric( $point_1['lng'] ) && is_numeric( $point_2['lat'] ) && is_numeric( $point_1['lng'] ) ) :
-
-					// calculates the distance between two points given their latitude and longitude
-					// @see http://www.geodatasource.com/developers/php
-					$theta = $point_1['lng'] - $point_2['lng'];
-					$dist = ( sin( deg2rad( $point_1['lat'] ) ) * sin( deg2rad( $point_2['lat'] ) ) ) + ( cos( deg2rad( $point_1['lat'] ) ) * cos( deg2rad( $point_2['lat'] ) ) * cos( deg2rad( $theta ) ) );
-					$dist = acos( $dist );
-					$dist = rad2deg( $dist );
-					$dist = $dist * 60 * 1.1515; // miles
-					$dist = self::convert_distance( $dist, 'miles', $unit );
-
-				endif;
-
-				// put the results in array
-				$result[$i-1] = $dist;
-
-				$i++;
-
-			endwhile;
-
-		endif;
-
-		if ( $sum == true && is_array( $distance ) )
-			$result = array_sum( $distance );
-
-		return $result;
-	}
-
-	/**
-	 * Validate data.
-	 * Performs checks on variables used in database queries.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param  number  $lat     latitude
-	 * @param  number  $lng     longitude
-	 * @param  int     $id      object id, if $exists is true, must match a WordPress object
-	 * @param  string  $type    must be a recognized value ('post', 'term' 'user' or 'comment')
-	 * @param  string  $name    name of the taxonomy, if $type is 'term'
-	 * @param  bool    $check  if true will consider if the WordPress object exists already in database
-	 * @param  bool    $public  must be true or false, 1 or 0
-	 *
-	 * @return bool   true if succeeds, false if fails
-	 */
-	private static function validate_data( $lat, $lng, $id, $type, $name = '', $check = true, $public = true ) {
-
-		// id should be a positive integer
-		if ( ! is_int( $id ) ) {
-			trigger_error( 'The specified ID is not a valid integer.', E_USER_WARNING );
-			return false;
-		}
-		// coordinates must be numbers
-		if ( is_nan( $lat ) || is_nan( $lng ) ) {
-			trigger_error( 'The latitude or longitude value is not a number.', E_USER_WARNING );
-			return false;
-		}
-		// public status must be true or false
-		if ( ! is_bool( $public ) ) {
-			trigger_error( 'Public value should be of boolean type.', E_USER_WARNING );
-			return false;
-		}
-
-		// $type must be one of the accepted values and corresponding WP entity must exist
-		if ( $type == 'post' ) {
-
-			$post_exists = $check == true ? get_post( $id ) : true;
-			return $post_exists ? true : false;
-
-		} elseif ( $type == 'term' AND ! empty ( $name ) ) {
-
-			$term_exists = $check == true ? term_exists( $id, $name ) : true;
-			return $term_exists ? true : false;
-
-		} elseif ( $type == 'user' ) {
-
-			$user_exists = $check == true ? get_user_by( 'id', $id ) : true;
-			return $user_exists ? true : false;
-
-		} elseif ( $type = 'comment' ) {
-
-			$comment_exists = $check == true ? get_comment( $id ) : true;
-			return $comment_exists ? true : false;
-
-		} else {
-
-			trigger_error( 'Could not recognize the specified object type.', E_USER_WARNING );
-			return false;
-		}
-
-	}
-
-	/**
-	 * Save a new location from database.
-	 * If the location is already existing, will do an update.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param array $args an array of arguments as follows:
-	 *                    number 'lat'     latitude
-	 *                    number 'lng'     longitude
-	 *                    int    'id'      the corresponding id of the WordPress object
-	 *                    string 'type'    the type of data to query (possible values: 'post', 'term or 'user')
-	 *                    string 'name'    if 'type' value is 'term' a taxonomy 'name' must be specified too
-	 *                    array  'address' an array containing the location address data
-	 *                    string 'meta'    serialized data with location meta attributes
-	 *                    bool   'public'  false if this location is private, true if public, default true
-	 *                    bool   'exists'  if true, performs a check if a matching WordPress object with specified 'id' already exists, default false
-	 *
-	 * @return bool will return false in case of errors, otherwise true
-	 */
-	public static function save_location( $args ) {
-
-		$defaults = array(
-			'lat' => '',
-			'lng' => '',
-			'id' => '',
-			'type' => '',
-			'name' => '',
-			'address' => '',
-			'meta' => '',
-			'public' => true
-		);
+		// set default values to merge with passed args
+		$defaults = self::default_options( 'location' );
 		$args = wp_parse_args( $args, $defaults );
 		extract( $args, EXTR_SKIP );
 
-		if ( self::validate_data( $lat, $lng, $id, $type, $name, false, $public ) != true ) {
-			trigger_error( 'Could not save location with invalid or missing data.', E_USER_WARNING );
-			return false;
+		// check if passed latitude and longitude exist and are numbers
+		if ( ! is_numeric( $lat ) || ! is_numeric( $lng ) ) {
+			trigger_error( 'Cannot save or update location without valid coordinates.', E_USER_WARNING );
+			return null;
 		}
 
-		if ( self::get_location( $id, $type ) == true ) {
-			self::update_location( $args );
-			return true;
-		}
+		$type = $type == 'page' ? 'post' : $type;
+		$obj_date = isset( $date ) ? $date : '';
+		$obj_date =  $obj_date && self::validate_date( $obj_date ) == true ? $obj_date : '';
 
-		$address = self::get_address( $address );
+		if ( empty( $status ) ) :
 
-		global $wpdb;
-		$table = $wpdb->prefix . self::plugin_slug() . '_' . $type . 's';
+			if ( $type == 'post' ) {
 
-		$data = array(
-			'id'        => $id,
-			'lat'       => $lat,
-			'lng'       => $lng,
-			'public'    => $public === true || 1 ? 1 : 0,
-			'street'    => $address['street'],
-			'area'      => $address['area'],
-			'city'      => $address['city'],
-			'state'     => $address['state'],
-			'postcode'  => $address['postcode'],
-			'country'   => $address['country'],
-			'meta'      => $meta
-		);
-		$wpdb->insert( $table, $data );
+				$post = get_post( $id );
+				$status = $post->post_status == 'publish' ? 'public' : 'private';
 
-		if ( in_array( $type, array( 'post', 'user', 'comment' ) ) ) :
+			} elseif ( $type == 'comment' ) {
 
-			self::edit_wp_meta( $type, $id, 'add', array(
-				'lat' => $lat,
-				'lng' => $lng,
-				'address' => self::stringify_address( $address ),
-				'public' => $public
-			) );
-
-		endif;
-
-		return true;
-	}
-
-	/**
-	 * Update a location in database.
-	 * Updates a location entry with new data.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param array $args an array of arguments as follows:
-	 *                    number 'lat'     latitude
-	 *                    number 'lng'     longitude
-	 *                    int    'id'      the corresponding id of the WordPress object
-	 *                    string 'type'    the type of data to query (possible values: 'post', 'term or 'user')
-	 *                    string 'name'    if 'type' value is 'term' a taxonomy 'name' must be specified too
-	 *                    array  'address' an array containing the location address data
-	 *                    string 'meta'    serialized data with location meta attributes
-	 *                    bool   'public'  false if this location is private, true if public, default true
-	 *
-	 * @return bool will return false in case of errors, otherwise true
-	 */
-	public static function update_location( $args ) {
-
-		$defaults = array(
-			'lat' => '',
-			'lng' => '',
-			'id' => '',
-			'type' => '',
-			'name' => '',
-			'address' => '',
-			'meta' => '',
-			'public' => true,
-		);
-		$args = wp_parse_args( $args, $defaults );
-		extract( $args, EXTR_SKIP );
-
-		if ( self::validate_data( $lat, $lng, $id, $type, $name, true, $public ) != true ) {
-			trigger_error( 'Could not update location with invalid or missing data.', E_USER_WARNING );
-			return false;
-		}
-
-		$data = array();
-		// id, lat, lng are numbers, hence %d
-		$format = array( '%d', '%d', '%d' );
-
-		$data['lat'] = $lat;
-		$data['lng'] = $lng;
-		$data['public'] = $public === true || 1 ? 1 : 0;
-
-		if ( is_array( $address ) ) :
-
-			$parsed = self::get_address( $address );
-			if ( $parsed ) {
-				foreach ( $parsed as $value => $key ) :
-					$data[$key] = $value;
-				endforeach;
-				// each address column in db is saved as string, hence %s
-				$format = array_merge( $format, array( '%s', '%s', '%s', '%s', '%s', '%s' ) );
-			}
-
-		endif;
-
-		if ( is_array( $meta ) ) :
-
-			$current = self::get_location( $id, $type );
-			$existing = self::get_meta ( $current );
-			$data['meta'] = json_encode( array_merge( $existing, $meta ) );
-			// meta is stored in db column as serialized data, hence %s string
-			$format = array_merge( $format, array( '%s' ) );
-
-		endif;
-
-		global $wpdb;
-		$table = $wpdb->prefix . self::plugin_slug() . '_' . $type . 's';
-		$wpdb->update( $table, $data, array( 'id' => $id ), $format, array( '%d' ) );
-
-		if ( in_array( $type, array( 'post', 'user', 'comment' ) ) ):
-
-			self::edit_wp_meta( $type, $id, 'update', array(
-				'lat' => $lat,
-				'lng' => $lng,
-				'address' => $address,
-				'public' => $public
-			) );
-
-		endif;
-
-		return true;
-	}
-
-	/**
-	 * Delete row from location database.
-	 * Helper for delete_location() function to delete items in database.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param string $table the database table where the function takes effect
-	 * @param array  $args  an array of arguments
-	 * @see delete_location() function for more details on arguments to pass
-	 */
-	private static function delete_row( $table, $args ) {
-
-		global $wpdb;
-		$deleteMeta = '';
-
-		// delete rows matching specified ID(s)
-		if ( $args['by'] == 'id' ) {
-
-			if ( ! is_array( $args['id'] ) ) {
-
-				if ( is_int( $args['id'] ) ) {
-
-					$wpdb->delete( $table, array( 'id' => $args['id'] ), array( '%d' ) );
-					self::edit_wp_meta( $args['type'], $args['id'], 'delete' );
-
-				} elseif( $args['id'] == '*' ) {
-
-					$wpdb->delete( $table, array( 'id' => $args['id'] ), array( '%s' ) );
-					$deleteMeta = $wpdb->get_results(
-	                   $wpdb->prepare( "
-			                SELECT *
-							FROM %s
-						", $table )
-					);
-
-				}
+				$comment = wp_get_comment_status( $id );
+				$status = $comment == 'approve' ? 'public' : 'private';
 
 			} else {
 
-				foreach ( $args['id'] as $id ) :
+				$status = 'public';
 
-					if ( is_int( $id ) ) {
-
-						$wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
-						self::edit_wp_meta( $args['type'], $id, 'delete' );
-
-					}
-
-				endforeach;
 			}
 
-			// delete rows matching specified coordinates
-		} elseif ( $args['by'] == 'latlng' ) {
+		endif;
 
-			if ( ! is_nan( $args['lat'] ) && ! is_nan( $args['lng'] ) ) :
+		$data = array(
+			'status'        => $status,
+			'title'         => $title,
+			'lat'           => $lat,
+			'lng'           => $lng,
+			'street'        => $street,
+			'area'          => $area,
+			'city'          => $city,
+			'district'      => $district,
+			'state'         => $state,
+			'postcode'      => $postcode,
+			'country'       => $country,
+			'countrycode'   => $countrycode,
+			'updated'       => current_time( 'mysql' ),
+		);
 
-				$lat = $args['lat'];
-				$lng = $args['lng'];
-				$wpdb->delete( $table, array( 'lat' => $lat, 'lng' => $lng ), array( '%d', '%d' ) );
-				$deleteMeta = $wpdb->get_results(
-                   $wpdb->prepare( "
-		                SELECT id
-						FROM %s
-						WHERE lat = %d
-						AND lng = %d
-					", $table, $lat, $lng )
-				);
+		global $wpdb;
+		$location = self::get_location( $type, $id );
 
-			endif;
+		// save (location exists)
+		if (  $location != true ) {
 
-			// delete rows matching 'public' status true or false
-		} elseif ( $args['by'] == 'status' ) {
+			$table = $wpdb->prefix . 'locations';
+			$wpdb->insert( $table, $data );
 
-			if ( is_bool( $args['public'] ) ) :
+			// the last generated auto increment id from the query above
+			$loc_id = (int) $wpdb->insert_id;
 
-				$public = $args['public'];
-				$wpdb->delete( $table, array( 'public' => $public ), array( '%d' ) );
-				$deleteMeta = $wpdb->get_results(
-                   $wpdb->prepare( "
-				        SELECT id
-						FROM %s
-						WHERE public = %d
-					", $table, $public )
-				);
+		// update existing location
+		} else {
 
-			endif;
+			$loc_id = isset( $location->id ) ? (int) $location->id : '';
+
+			if ( ! is_int( $loc_id ) || $loc_id === 0 )
+				return null;
+
+			$table = $wpdb->prefix . 'locations';
+			$wpdb->update( $table, $data, array( 'id' => $loc_id ), '%s', array( '%d' ) );
 
 		}
 
-		if ( is_array( $deleteMeta ) AND in_array( $args['type'], array( 'post', 'user', 'comment' ) ) )
-			foreach ( $deleteMeta as $delete )
-				self::edit_wp_meta( $delete->id, $args['type'], 'delete' );
+		// save or update relationship
+		Vespucci::save_location_relationship( $type, $id, $loc_id, $obj_date );
+
+		// save or update geo meta data, according to WordPress Geo standards
+		if ( in_array( $type, array( 'post', 'user', 'comment' ) ) ):
+			self::edit_wp_meta( $type, $id, 'update', array(
+				'lat' => $lat,
+				'lng' => $lng,
+				'address' => self::stringify_address( $data ),
+				'public' => $status == 'public' ? 1 : 0
+			) );
+		endif;
+
+		return $loc_id;
+	}
+
+	/**
+	 * Get location relationship.
+	 * Returns the relationship data of a location.
+	 *
+	 * @since   0.1.0
+	 *
+	 * @param   int $id the location id
+	 *
+	 * @return  object|null|bool   returns false if no results, database object on match, null on error
+	 */
+	public static function get_location_relationship( $id ) {
+
+		if ( ! is_int( $id ) )
+			return null;
+
+		global $wpdb;
+
+		// first find the corresponding location connected to the specified object
+		$table = $wpdb->prefix . 'location_relationships';
+		$result = $wpdb->get_results( $wpdb->prepare( "
+				SELECT 	*
+				FROM 	$table
+				WHERE	location_id = %d
+		", $id ) );
+
+		return $result ? $result : false;
+	}
+
+	/**
+	 * Save location relationship.
+	 * Saves relationship data of a location to a WordPress object to database.
+	 *
+	 * @since   0.1.0
+	 *
+	 * @param   string      $type       the associated WordPress object type (post, term, user, comment...)
+	 * @param   int         $obj_id     the associated WordPress object id
+	 * @param   int|string  $loc_id     the location id, if empty string will attempt to find it
+	 * @param   string      $obj_date   the associated WordPress object published date (datetime)
+	 */
+	public static function save_location_relationship( $type, $obj_id, $loc_id = '', $obj_date = '' ) {
+
+		$type = $type == 'page' ? 'post' : $type;
+
+		if ( empty( $loc_id ) ) :
+
+			$location = self::get_location( $type, $obj_id );
+			$loc_id = isset( $location->id ) ? (int) $location->id : '';
+
+		endif;
+
+		// validate args
+		if ( ! is_int( $loc_id ) || ! is_int( $obj_id ) || ! in_array( $type, array( 'post', 'page', 'user', 'term', 'comment' ) ) ) {
+			trigger_error( 'Cannot update relationship without valid arguments.', E_USER_WARNING );
+			return;
+		}
+
+		$type = $type == 'page' ? 'post' : $type;
+
+		// if unset, get the object date
+		if ( empty( $obj_date ) || ! is_string( $obj_date ) ) :
+
+			if ( $type == 'post' ) {
+
+				$obj = get_post( $obj_id );
+				$obj_date = isset( $obj->post_date ) ? $obj->post_date : '';
+
+			} elseif( $type == 'user' ) {
+
+				$obj = get_user_by( 'id', $obj_id );
+				$obj = isset( $obj->data ) ? $obj->data : '';
+				$obj_date = isset( $obj->user_registered ) ? $obj->user_registered : '';
+
+			} elseif( $type == 'comment' ) {
+
+				$obj = get_comment( $obj_id );
+				$obj_date = isset( $obj->comment_date ) ? $obj->comment_date : '';
+
+			} else {
+
+				$obj_date = current_time( 'mysql' );
+
+			}
+
+		endif;
+
+		// check if date is valid
+		if ( self::validate_date( $obj_date ) != true )
+			return;
+
+		// update existing location relationship
+	    if ( $loc_id != 0 && self::get_location_relationship( $loc_id ) == true ) {
+
+		    $data = array(
+			    'object_name'   => $type,
+			    'object_id'     => $obj_id,
+			    'object_date'   => $obj_date,
+			    'updated'       => current_time( 'mysql' ),
+		    );
+		    $format = array(
+			    '%s', '%d', '%s', '%s',
+		    );
+		    // update
+		    global $wpdb;
+		    $table = $wpdb->prefix . 'location_relationships';
+		    $wpdb->update( $table, $data, array( 'location_id' => $loc_id ), $format, array( '%d' ) );
+
+		// save new location relationship
+	    } else {
+
+		    $data = array(
+			    'object_name'   => $type,
+			    'object_id'     => $obj_id,
+			    'location_id'   => $loc_id,
+			    'object_date'   => $obj_date,
+			    'updated'       => current_time( 'mysql' ),
+		    );
+		    // save
+		    global $wpdb;
+		    $table = $wpdb->prefix . 'location_relationships';
+		    $wpdb->insert( $table, $data );
+
+	    }
+
+	}
+
+	/**
+	 * Check if a location meta exists.
+	 *
+	 * @since   0.1.0
+	 *
+	 * @param   int     $id the location meta id
+	 *
+	 * @return  bool    whether the location meta exists or not
+	 */
+	public static function location_meta_exists( $id ) {
+
+		if ( ! is_int( $id ) )
+			return false;
+
+		global $wpdb;
+		$table = $wpdb->prefix . 'locationmeta';
+		$result = $wpdb->get_results( "
+			SELECT 	*
+			FROM 	$table
+			WHERE 	meta_id = $id
+		" );
+		$result = isset( $result[0] ) ? $result[0] : $result;
+
+		return $result ? true : false;
+
+	}
+
+	/**
+	 * Get a location meta.
+	 * Returns a location meta value for the specified key and location.
+	 * If no key is passed, will return an array with all location meta key-value pairs for the given location.
+	 *
+	 * @since   0.1.0
+	 *
+	 * @param   int     $loc_id     the location object id
+	 * @param   string  $meta_key   the meta key name (optional)
+	 *
+	 * @return  string|array  the corresponding meta value
+	 */
+	public static function get_location_meta( $loc_id, $meta_key = '' ) {
+
+		// validate arguments
+		if ( ! is_int( $loc_id ) || self::location_exists( $loc_id ) != true )
+			return '';
+
+		global $wpdb;
+		$table = $wpdb->prefix . 'locationmeta';
+
+		if ( ! empty( $meta_key ) && is_string( $meta_key ) ) {
+
+			$meta_key = sanitize_key( $meta_key );
+			$meta_value = $wpdb->get_var( $wpdb->prepare( "
+					SELECT 	meta_value
+					FROM 	$table
+					WHERE 	location_id = %d
+					AND 	meta_key = %s
+				", $loc_id, $meta_key
+			) );
+
+			return $meta_value ? maybe_unserialize( $meta_value ) : '';
+
+		} else {
+
+			$results = $wpdb->get_results( $wpdb->prepare( "
+					SELECT 	*
+		            FROM    $table
+		            WHERE	location_id = %d
+				", $loc_id
+			) );
+
+			return $results;
+
+		}
+
+	}
+
+	/**
+	 * Save location meta.
+	 * Saves or updates one or more location meta.
+	 *
+	 * @since   0.1.0
+	 *
+	 * @param   int     $loc_id the id of the corresponding location
+	 * @param   array   $args   location metadata in key-value pairs (could be multiple meta)
+	 *
+	 * @return  array    will return an array with the ids of the saved/updated location meta
+	 */
+	public static function save_location_meta( $loc_id, $args ) {
+
+		$meta_ids = array();
+
+		// bail out early if location does not exist
+		if ( ! is_int( $loc_id ) || ! is_array( $args ) || self::location_exists( $loc_id ) != true )
+			return $meta_ids;
+
+		global $wpdb;
+		$table = $wpdb->prefix . 'locationmeta';
+
+		foreach( $args as $meta_key => $meta_value ) :
+
+			$meta_key = sanitize_key( $meta_key );
+
+			// serialize everything
+			if ( is_int( $meta_value ) )
+				$meta_value = serialize( strval( $meta_value ) );
+			else
+				$meta_value = serialize( $meta_value );
+
+			$data = array(
+				'location_id'   => $loc_id,
+				'meta_key'      => $meta_key,
+				'meta_value'    => $meta_value
+			);
+			$format = array( '%d', '%s', '%s' );
+
+			$meta_id = (int) $wpdb->get_var( $wpdb->prepare( "
+					SELECT 	meta_id
+					FROM 	$table
+					WHERE 	location_id = %d
+					AND 	meta_key = %s
+			", $loc_id, $meta_key ) );
+
+			// update existing meta
+			if ( $meta_id == true && $meta_id !== 0 ) {
+
+				$wpdb->update( $table, $data, array( 'meta_id' => $meta_id ), $format, array( '%d' ) );
+
+			// save new location meta
+			} else {
+
+				$wpdb->query( $wpdb->prepare( "
+						INSERT INTO $table
+						( location_id, meta_key, meta_value )
+						VALUES ( %d, %s, %s )
+				", $loc_id, $meta_key, $meta_value ) );
+
+				$meta_id = (int) $wpdb->insert_id;
+
+			}
+
+			$meta_ids[] = $meta_id;
+
+		endforeach;
+
+		return $meta_ids;
+	}
+
+	/**
+	 * Delete location meta.
+	 * Deletes one or more location meta from database, according to arguments passed.
+	 *
+	 * @since   0.1.0
+	 *
+	 * @param   int     $loc_id the id of the corresponding location
+	 * @param   array   $args   location metadata in key-value pairs (could be multiple meta)
+	 */
+	public static function delete_location_meta( $loc_id, $args ) {
+
+		// bail out early if location does not exist or arguments are invalid
+		if ( ! is_int( $loc_id ) || ! is_array( $args ) || self::location_exists( $loc_id ) == false )
+			return;
+
+		global $wpdb;
+		$meta_row = $wpdb->prefix . 'locationmeta';
+
+		foreach( $args as $meta_key => $meta_value ) :
+
+			$meta_key = sanitize_key( $meta_key );
+			$meta = self::get_location_meta( $loc_id, $meta_key );
+			$meta_id = isset( $meta->meta_id ) ? $meta->meta_id : '';
+			if ( is_int( $meta_id ) )
+				$wpdb->delete( $meta_row, array( 'id' => $meta_id ), array( '%d' ) );
+
+		endforeach;
 
 	}
 
@@ -1032,80 +830,77 @@ class Vespucci {
 	 * Removes one or more locations from the database.
 	 * Also synchronizes the data change with WordPress custom fields for geodata.
 	 *
-	 * @since 1.0.0
+	 * @since   0.1.0
 	 *
-	 * @param array $args an array of arguments to set which locations to delete, as follows:
-	 *                    'by' sets the criteria, can be 'id' (object id), 'latlng' (coordinates), 'status' (public/private)
-	 *                    'id' string '*', unique id (int) or array of unique ids of locations to delete if 'by' value is 'id'
-	 *                    'type' can be 'post', 'term', 'user' or 'all' ('all' will not work if 'by' is set to 'id')
-	 *                    'lat' latitude to be set if 'by' value is set to 'latlng'
-	 *                    'lng' longitude to be set if 'by' value is set to 'latlng'
-	 *                    'public' location status, to be set if 'by' value is set to 'status'
+	 * @param   string  $type   the connected WordPress object type
+	 * @param   int     $id     the connected WordPress object id
+	 *
+	 * @return  int|string    returns the id of the deleted location, empty string on error
 	 */
-	public static function delete_location( $args ) {
+	public static function delete_location( $type, $id ) {
 
-		$defaults = array(
-			'by' => '',
-			'id' => '',
-			'type' => '',
-			'lat' => '',
-			'lng' => '',
-			'public' => ''
-		);
-		$args = wp_parse_args( $args, $defaults );
-		extract( $args, EXTR_SKIP );
-
-		// deletes matching rows within the specified plugin table
-		if ( in_array( $args['type'], array( 'post', 'term', 'user', 'comment' ) ) ) {
-
-			global $wpdb;
-			$table = $wpdb->prefix . self::plugin_slug() . '_' . $args['type'] . 's';
-			self::delete_row( $table, $args );
-
-			// deletes matching rows from posts, terms and users plugin tables
-		} elseif ( $args['type'] == 'all' ) {
-
-			$tables = array( 'posts', 'terms', 'users', 'comments' );
-			foreach( $tables as $type ) :
-
-				global $wpdb;
-				$table = $wpdb->prefix . self::plugin_slug() . '_' . $type;
-				self::delete_row( $table, wp_parse_args( array( 'type' => $type ), $args ) );
-
-			endforeach;
-
+		// bail out early if arguments are invalid
+		if ( ! is_int( $id ) || ! in_array( $type, array( 'post', 'page', 'user', 'term', 'comment' ) ) ) {
+			trigger_error( 'Invalid argument supplied to delete location', E_USER_WARNING );
+			return '';
 		}
 
+		// get the connected location
+		$type = $type == 'page' ? 'post' : $type;
+		$location = self::get_location( $type, $id );
+		// double check: if no location found, don't delete
+		if ( $location != true || ! isset( $location->id ) )
+			return '';
+
+		$loc_id = (int) $location->id;
+		global $wpdb;
+
+		// delete the location
+		$location_row = $wpdb->prefix . 'locations';
+		$wpdb->delete( $location_row, array( 'id' => $loc_id ), array( '%d' ) );
+
+		// delete this location relationship
+		$location_relationship = $wpdb->prefix . 'location_relationships';
+		$wpdb->delete( $location_relationship, array( 'location_id' => $loc_id ), array( '%d' ) );
+
+		// delete the location metadata associated with this location
+		$location_meta = $wpdb->prefix . 'locationmeta';
+		$wpdb->query( $wpdb->prepare( "
+				DELETE 	*
+				FROM 	%s
+				WHERE 	location_id = %d
+		", $location_meta, $loc_id ) );
+
+		// delete additional WordPress Geo metadata
+		if ( in_array( $type, array( 'post', 'user', 'comment' ) ) )
+			self::edit_wp_meta( $type, $id, 'delete' );
+
+		return $loc_id;
 	}
 
 	/**
 	 * Edit WordPress meta.
 	 * Adds, updates or deletes WordPress custom meta fields with geo data.
 	 * Follows WordPress standards to store geo data in custom meta fields.
-	 * @see http://codex.wordpress.org/Geodata
 	 *
-	 * @since 1.0.0
+	 * @link http://codex.wordpress.org/Geodata
 	 *
-	 * @param string  $type    either 'user', 'comment' or 'post' (where WordPress allows meta natively)
-	 * @param int     $id      the id of the corresponding WordPress object
-	 * @param string  $action  either 'update' (or 'add') or 'delete'
-	 * @param array   $args    optional extra arguments if $action is 'add' or 'update':
-	 *                         'address'  array with address data
-	 *                         'public'   true or false
-	 *                         'lat'      latitude
-	 *                         'lng'      longitude
+	 * @since   0.1.0
+	 *
+	 * @param   string  $type   either 'user', 'comment' or 'post' (where WordPress allows meta natively)
+	 * @param   int     $id     the id of the corresponding WordPress object
+	 * @param   string  $action either 'update' (or 'add') or 'delete'
+	 * @param   array   $args   meta keys and values used if $action is 'add' or 'update'
 	 */
-	private static function edit_wp_meta( $type, $id, $action, $args = array() ) {
+	public static function edit_wp_meta( $type, $id, $action, $args = array() ) {
 
-		if ( ! is_int( $id ) ) {
-			trigger_error( 'Cannot edit object meta without a valid ID.', E_USER_WARNING );
+		// bail out early if arguments supplied are invalid or of unexpected type
+		if ( empty( $action ) || ! is_int( $id ) || ! in_array( $type, array( 'user', 'post', 'comment' ) )  ) {
+			trigger_error( 'Cannot edit object meta without valid arguments.', E_USER_WARNING );
 			return;
 		}
 
-		if ( in_array( $type, array( 'user', 'post', 'comment' ) ) ) {
-			trigger_error( 'Cannot edit meta of the specified object type "' . $type . '".', E_USER_WARNING );
-			return;
-		}
+		$plugin_name = self::get_plugin_name();
 
 		$defaults = array(
 			'address' => '',
@@ -1113,31 +908,61 @@ class Vespucci {
 			'lat' => '',
 			'lng' => ''
 		);
-		$args = wp_parse_args( $args, $defaults );
-		extract( $args, EXTR_SKIP );
+		$args = wp_parse_args(
+			apply_filters( $plugin_name . '_edit_post_meta', $args, $action ),
+			$defaults
+		);
 
 		if ( $action == 'update' || 'add' ) {
 
-			if ( ! is_nan( $lat ) && ! is_nan( $lng ) ) {
-				call_user_func( 'update_' . $type . '_meta', array( $id, 'geo_latitude', $lat ) );
-				call_user_func( 'update_' . $type . '_meta', array( $id, 'geo_longitude', $lng ) );
-			}
+			foreach ( $args as $key => $value ) :
 
-			if ( is_object( $address ) || is_array( $address ) ) {
-				call_user_func( 'update_' . $type . '_meta', array( $id, 'geo_address', self::stringify_address( $address ) ) );
-			} elseif ( ! empty( $address ) AND is_string( $address ) ) {
-				call_user_func( 'update_' . $type . '_meta', array( $id, 'geo_address', $address ) );
-			}
+				if ( $key == 'address' ) {
 
-			if ( is_bool ( $public ) )
-				call_user_func( 'update_' . $type . '_meta', array( $id, 'geo_public', $public ) );
+					if ( is_object( $value ) || is_array( $value ) ) {
+						call_user_func_array( 'update_' . $type . '_meta', array( $id, 'geo_address', self::stringify_address( $value ) ) );
+					} elseif ( ! empty( $value ) && is_string( $value ) ) {
+						call_user_func_array( 'update_' . $type . '_meta', array( $id, 'geo_address', $value ) );
+					}
+
+				} elseif ( $key == 'lat' || $key == 'lng' ) {
+
+					if ( ! is_nan( $value ) ) {
+						if ( $key == 'lat' )
+							call_user_func_array( 'update_' . $type . '_meta', array( $id, 'geo_latitude', $value ) );
+						elseif ( $key == 'lng' )
+							call_user_func_array( 'update_' . $type . '_meta', array( $id, 'geo_longitude', $value ) );
+					}
+
+				} elseif ( $key == 'public' ) {
+
+					if ( is_bool( $value ) || $value === 1 )
+						call_user_func( 'update_' . $type . '_meta', array( $id, 'geo_public', $value ) );
+
+				} else {
+
+					call_user_func( 'update_' . $type . '_meta', array( $id, $key, $value ) );
+
+				}
+
+			endforeach;
 
 		} elseif ( $action == 'delete' ) {
 
-			call_user_func( 'delete_' . $type . '_meta', array( $id, 'geo_latitude' ) );
-			call_user_func( 'delete_' . $type . '_meta', array( $id, 'geo_longitude' ) );
-			call_user_func( 'delete_' . $type . '_meta', array( $id, 'geo_address' ) );
-			call_user_func( 'delete_' . $type . '_meta', array( $id, 'geo_public' ) );
+			foreach( $args as $key => $value ) :
+
+				if ( $key == 'address' )
+					call_user_func_array( 'delete_' . $type . '_meta', array( $id, 'geo_address' ) );
+				elseif( $key == 'lat' )
+					call_user_func_array( 'delete_' . $type . '_meta', array( $id, 'geo_latitude' ) );
+				elseif ( $key == 'lng' )
+					call_user_func_array( 'delete_' . $type . '_meta', array( $id, 'geo_longitude' ) );
+				elseif ( $key == 'public' )
+					call_user_func_array( 'delete_' . $type . '_meta', array( $id, 'geo_longitude' ) );
+				else
+					call_user_func_array( 'delete_' . $type . '_meta', array( $id, $key ) );
+
+			endforeach;
 
 		}
 

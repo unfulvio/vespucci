@@ -1,12 +1,10 @@
 <?php
 /**
- * Fired during plugin activation
+ * Vespucci Plugin
  *
- * @link       http://example.com
- * @since      1.0.0
- *
- * @package    Plugin_Name
- * @subpackage Plugin_Name/includes
+ * @package   Vespucci
+ * @license   GPL-2.0+
+ * @link      https://github.com/nekojira/vespucci
  */
 
 /**
@@ -14,27 +12,27 @@
  *
  * This class defines all code necessary to run during the plugin's activation.
  *
- * @since      1.0.0
+ * @since      0.1.0
  * @package    Vespucci
- * @subpackage Vespucci/lib
- * @author     Your Name <email@example.com>
  */
 class Vespucci_Plugin {
 
 	/**
-	 * Short Description. (use period)
+	 * Activate plugin
+	 * Fired upon plugin activation. Will create database tables and set default options.
 	 *
-	 * Long Description.
-	 *
-	 * @since    1.0.0
+	 * @since    0.1.0
 	 */
 	public static function activate() {
 
-		$plugin = Vespucci_Core::get_instance();
-		$plugin_slug = $plugin->get_plugin_name();
+		$plugin = new Vespucci_Core;
+		$plugin_name = $plugin->get_plugin_name();
+		$plugin_version = $plugin->get_version();
+		new Vespucci( $plugin_name, $plugin_version );
 
 		// in case of SQL or "headers already sent" errors upon activation, uncomment for debug info
 		// ob_start();
+
 
 		global $wpdb;
 
@@ -52,27 +50,28 @@ class Vespucci_Plugin {
 
 			$sql[] = "CREATE TABLE $table_name (
 			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-			lat DECIMAL(9,6) NOT NULL DEFAULT 0,
-			lng DECIMAL(9,6) NOT NULL DEFAULT 0,
-			title TEXT NULL,
-			street VARCHAR(144) NULL,
-			area VARCHAR(128) NULL,
-			city VARCHAR(96) NULL,
-			state VARCHAR(96) NULL,
-			postcode VARCHAR(24) NULL,
-			country	VARCHAR(96) NULL,
-			code CHAR(2) NOT NULL,
-			updated DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+			status varchar(20) NOT NULL default 'public',
+			lat DECIMAL(9,6) NOT NULL default 0,
+			lng DECIMAL(9,6) NOT NULL default 0,
+			title TEXT NOT NULL,
+			street VARCHAR(144) NOT NULL default '',
+			area VARCHAR(128) NOT NULL default '',
+			city VARCHAR(96) NOT NULL default '',
+			district VARCHAR(96) NOT NULL default '',
+			state VARCHAR(96) NOT NULL default '',
+			postcode VARCHAR(24) NOT NULL default '',
+			country	VARCHAR(96) NOT NULL default '',
+			countrycode CHAR(2) NOT NULL,
+			updated DATETIME NOT NULL default '0000-00-00 00:00:00',
 			PRIMARY KEY id (id),
 			KEY coordinates (lat,lng),
 			KEY lat (lat),
 			KEY lng (lng),
-			KEY title (title),
-			KEY city (country,city),
-			KEY region (country,state),
-			KEY postcode (country,postcode),
+			KEY city (city),
+			KEY region (state),
+			KEY postcode (postcode),
 			KEY country (country),
-			KEY code (code)
+			KEY countrycode (countrycode)
 		) $charset_collate;";
 
 		endif;
@@ -83,13 +82,15 @@ class Vespucci_Plugin {
 		if ( count( $table_exists ) == 0 ) :
 
 			$sql[] = "CREATE TABLE $table_name (
-			object_name VARCHAR(80) NOT NULL,
-			object_id BIGINT(20) UNSIGNED NOT NULL,
-			location_id BIGINT(20) UNSIGNED NOT NULL,
-			object_date DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
-			PRIMARY KEY relationship (object_name,location_id,object_id),
+			object_name VARCHAR(80) NOT NULL default '',
+			object_id BIGINT(20) UNSIGNED NOT NULL default 0,
+			location_id BIGINT(20) UNSIGNED NOT NULL default 0,
+			object_date DATETIME NOT NULL default '0000-00-00 00:00:00',
+			updated DATETIME NOT NULL default '0000-00-00 00:00:00',
+			PRIMARY KEY relationship (object_name,object_id,location_id),
 			KEY object (object_name,object_id),
-			KEY object_date (object_name,object_date)
+			KEY object_date (object_name,object_date),
+			KEY updated (object_name,updated)
 		) $charset_collate;";
 
 		endif;
@@ -101,13 +102,13 @@ class Vespucci_Plugin {
 
 			$sql[] = "CREATE TABLE $table_name (
 			meta_id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-			location_id BIGINT(20) UNSIGNED NOT NULL DEFAULT 0,
+			location_id BIGINT(20) UNSIGNED NOT NULL default 0,
 			meta_key VARCHAR(255) NULL,
 			meta_value LONGTEXT NULL,
 			PRIMARY KEY meta_id (meta_id),
 			KEY location_id (location_id),
 			KEY meta_key (meta_key)
-		) $charset_collate;";
+		) $charset_collate; ";
 
 		endif;
 
@@ -118,30 +119,29 @@ class Vespucci_Plugin {
 		endif;
 
 		// in case of SQL or "headers already sent" errors upon activation, uncomment for debug info
-		//trigger_error( ob_get_contents(), E_USER_ERROR );
+		// trigger_error( ob_get_contents(), E_USER_ERROR );
 
+		// set options' default values
 		$options = array();
-		// set options default values
-		$options[$plugin_slug . '_locations'] = $plugin->default_options( 'objects' );
-		$options[$plugin_slug . '_settings'] = $plugin->default_options( 'settings' );
-		$options[$plugin_slug . '_version'] = $plugin->get_version();
+		$options[$plugin_name . '_settings']    = Vespucci::default_options( 'settings' );
+		$options[$plugin_name . '_location']    = Vespucci::default_options( 'location' );
+		$options[$plugin_name . '_meta']        = Vespucci::default_options( 'meta' );
+		$options[$plugin_name . '_objects']     = Vespucci::default_options( 'objects' );
+		$options[$plugin_name . '_version']     = Vespucci::get_version();
+		// before saving, check if there are options saved already in db
 		foreach( $options as $key => $value )
-			if ( get_option( $key ) )
-				update_option( $key, $value );
-			else
+			if ( get_option( $key ) != true )
 				add_option( $key, $value );
-
 	}
 
 	/**
+	 * Deactivate plugin.
+	 * Fired upon plugin deactivation.
 	 *
-	 *
-	 * @since 1.0.0
+	 * @since   0.1.0
 	 */
 	public static function deactivate() {
-
 		// nothing here yet, just a placeholder
-
 	}
 
 }

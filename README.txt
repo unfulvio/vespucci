@@ -1,10 +1,10 @@
 === Vespucci ===
 Contributors: nekojira
 Donate link: https://github.com/nekojira/
-Tags: geo, geo data, geodata, geospatial, geography, cartography, latitude, longitude, coordinates, map, maps, mapping
-Requires at least: 3.6.0
-Tested up to: 3.9.2
-Stable tag: 1.0.0
+Tags: geo, geo data, geodata, geospatial, geography, cartography, latitude, longitude, coordinates, map, maps, mapping, google-maps, mapbox, openstreetmaps, leafletjs, leaflet
+Requires at least: 3.9.0
+Tested up to: 4.0.0
+Stable tag: 0.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 

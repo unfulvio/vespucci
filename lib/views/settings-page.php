@@ -9,10 +9,7 @@
  * @copyright 2014 nekojira
  */
 
-// get plugin textdomain from slug
-$plugin = Vespucci_Core::get_instance();
-$plugin_slug = $plugin->get_plugin_name();
-
+$plugin_slug = Vespucci::get_plugin_name();
 ?>
 <div id="<?php echo $plugin_slug; ?>" class="wrap">
 
@@ -24,7 +21,7 @@ $plugin_slug = $plugin->get_plugin_name();
 
 	<h2 class="nav-tab-wrapper">
 		<a href="?page=<?php echo $plugin_slug . '-settings'; ?>" class="nav-tab"><?php _e( 'Settings', $plugin_slug ); ?></a>
-		<a href="?page=<?php echo $plugin_slug . '-locations'; ?>" class="nav-tab"><?php _e( 'Locations', $plugin_slug ); ?></a>
+		<a href="?page=<?php echo $plugin_slug . '-objects'; ?>" class="nav-tab"><?php _e( 'Objects', $plugin_slug ); ?></a>
 		<a href="?page=<?php echo $plugin_slug . '-tools'; ?>" class="nav-tab"><?php _e( 'Tools', $plugin_slug ); ?></a>
 	</h2>
 
@@ -36,32 +33,58 @@ $plugin_slug = $plugin->get_plugin_name();
 
 	if ( $active_tab == $plugin_slug . '-settings' ) {
 
-		echo '<form method="post" action="options.php">';
+		?>
+		<h3><mark>Under development.</mark></h3>
+		<p><mark>Most of these settings will be saved, but there's currently no frontend functionality to make use for some of them.</mark></p>
+		<p>This framework wants to be extensible and ideally developers should be made able to extend these settings if they want to.</p>
+		<?php
+
+		echo '<form id="' . $plugin_slug . '_settings_form" class="' . $plugin_slug . '-form" method="post" action="options.php" onSubmit="return false">';
 
 		settings_fields( $plugin_slug . '_settings' );
 		do_settings_sections( $plugin_slug . '_settings' );
 
 		echo '<br /><hr />';
-		submit_button();
+		submit_button( __( 'Save Changes', $plugin_slug), 'primary', $plugin_slug . '-submit', true, array( 'onClick' => 'this.form.submit()' ) );
 
 		echo '</form>';
 
-	} elseif ( $active_tab == $plugin_slug . '-locations' ) {
+	} elseif ( $active_tab == $plugin_slug . '-objects' ) {
 
-		echo '<form method="post" action="options.php">';
+		?>
+		<h3><mark>Under development.</mark></h3>
+		<p><mark>Currently only posts, post types and pages should work.</mark></p>
+		<p>Other WordPress objects are selectable, but you won't be able to save a location for them at the moment.</p>
+		<?php
+		echo '<form id="' . $plugin_slug . '_wp_objects_form" class="' . $plugin_slug . '-form" method="post" action="options.php"">';
 
-		settings_fields( $plugin_slug . '_locations' );
-		do_settings_sections( $plugin_slug . '_locations' );
+		settings_fields( $plugin_slug . '_objects' );
+		do_settings_sections( $plugin_slug . '_objects' );
 
 		echo '<br /><hr />';
-		submit_button();
+		submit_button( __( 'Save Changes', $plugin_slug), 'primary', $plugin_slug . '-submit', true );
 
 		echo '</form>';
 
 	} elseif( $active_tab == $plugin_slug . '-tools' ) {
 
-		do_settings_sections( $plugin_slug . '-tools' );
 
+		?>
+		<h3><mark>Under development.</mark></h3>
+		<p>In future this page should include some tools to perform database operations or mass handling of location entries in database.</p>
+		<p>Like other parts of this framework, tools functionality should be extensible and allow third parties to write tools for it.</p>
+		<p>Examples of possible future tools:</p>
+		<ol>
+			<li>Import and export utilities.</li>
+			<li>Convert and import from other plugins.</li>
+			<li>Map all locations to post metadata.</li>
+			<li>Create locations from post metadata.</li>
+			<li>Generate KML files or other export files.</li>
+			<li>...</li>
+		</ol>
+		<?php
+
+		do_settings_sections( $plugin_slug . '-tools' );
 	}
 
 	?>
