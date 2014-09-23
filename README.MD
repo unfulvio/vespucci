@@ -43,3 +43,20 @@ In the plugin settings pages you also have the possibility to save some defaults
 ####Inspiration
 
 This plugin was first drafted using Tom Mc Farlin's [WordPress Plugin Boilerplate](https://github.com/tommcfarlin/WordPress-Plugin-Boilerplate). It was inspired by [GeoMashup](https://github.com/cyberhobo/wp-geo-mashup), however also by [WooCommerce](https://github.com/woothemes/woocommerce) and [Advanced Custom Fields](https://github.com/elliotcondon/acf).  
+
+####Example ideas / uses / future development
+
+The idea is NOT let the core plugin do everything, but build extensions to fill different purposes. A framework is intended to be modular, it's easier to maintain, allows for greater possibilities. The base function should be restricted to save coordinates for WordPress objects and some simple metadata. The rest is handled by extensions.  
+
+* Generate frontend maps with anything: use leafletjs and Google Maps, Mapbox, OpenStreetMaps, Bing and other providers...
+* Query posts by location, distance
+* Geolocate current user or registered users (gives room for making conditional actions or delivering conditional content)
+* Find posts or other WordPress objects nearby a user current position or registered position 
+* Mention locations in a blog post and plot them on a map
+* Create a travel diary and pin posts to a map
+* Mashup WordPress geo-data with external services/third party apps
+* BuddyPress integration
+* WooCommerce integration (distance between a user and a product or store location?)
+* Integration with other plugins
+* Attach any type of metadata to locations, extend the location meta box and maybe save multiple points, itineraries, paths, drive directions...
+
