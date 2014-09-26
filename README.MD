@@ -9,18 +9,14 @@ A mapping and geo spatial framework for WordPress.
 ---
 
 
-###Introduction
+###Pitch
 
 
-WordPress has really nice and robust frameworks for ecommerce, social networking, meta data organization, events management, forms management, and many more. For each of these categories, in fact, there's more than one solution. Why can't we have one for geolocation and maps? There are many valid mapping plugins out there, but, regardless of their quality (some are rather good) most of them are one-man-band operations, thus they are not always well maintained, they were not planned as frameworks or meant to be extensible or modular, or don't allow much customization as most of them are meant for end users/bloggers, they are not built as a tool for other developers.  
+WordPress has really nice and robust frameworks for ecommerce, social networking, meta data organization, events management, forms management, and many more. For each of these categories, in fact, there's more than one solution. Why can't we have one for locations and maps? By that, it doesn't mean a plugin that simply stores coordinates in postmeta, adds a shortcode and publishes a Google Map in your post. Nor a bloated plugin that floods your dashboard with an astounding amount of options, the choice of 3000 markers in the attempt of covering every conceivable use case. But neither a plugin that doesn't follow best practices or doesn't adhere with WordPress standards (or sane coding standards or best contemporary practices).
 
-This plugin is a very humble attempt to build a better framework to manage things like geo spatial coordinates, geolocation, location queries, locations to WordPress objects relationships, custom maps, all within WordPress, combined with Leaflet.js and external map tile provides (Google Maps, Mapbox, OpenStreetMaps, etc.).
+Think instead of something well structured and solidly backed, say like WooCommerce, with a core part that absolves one essential task; in the case of a mapping plugin that task would be creating "location" objects to attach to WordPress common objects (post types, users, taxonomy terms, comments...) and describe these "locations" in database tables in a way that makes sense (index coordinates, allow for queries by distance, address, relationships...). But then, also provide room to extend this basic functionality with addons that are meant to cover each user specific case without bloating the whole plugin or overfeature a single plugin. For example, what if the user/developer wants to output maps using Mapbox instead of Google Maps? What if he/she wants to use different markers? Or wants to attach more metadata to a location, like a path, an itinerary, calculate the price of a product shipping by user distance? Sure you can do these things by coding them yourself, but there are many plugins out there used by developer to simplify their work, think of Gravity Forms or Advanced Custom Fields.
 
-At the core, it should allow users to store point coordinates and attach these to existing WordPress objects (namely posts, taxonomy terms, users, comments, or even custom objects in future), perform geo spatial queries and output results on customizable maps. It aims to be modular and extensible, to make it play nicely with other plugins or external services and let people build extensions or addons for it.
-
-## Current status
-
-In it's current version, consider this plugin an alpha or a minimum viable product, not meant for production, but only for demonstration purposes and idea pitching.  
+This plugin is a humble attempt to illustrate this concept. In it's current status, consider it as an alpha or a minimum viable product (MVP), not meant for production, but only for demonstration purposes and idea pitching. If you're curious, have also a look under the hood by looking at database chganges or code, after installation.
 
 ####Database structure
 
