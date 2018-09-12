@@ -1,4 +1,3 @@
-#Vespucci
 
 A WordPress plugin framework to handle maps and geo data.
 
